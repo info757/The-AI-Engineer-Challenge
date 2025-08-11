@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Settings } from 'lucide-react';
+import { Send, Bot, User, Loader2, Settings, Copy, Check } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -17,10 +17,21 @@ export default function Home() {
   const [apiKey, setApiKey] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [developerMessage, setDeveloperMessage] = useState('You are a helpful AI assistant.');
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const copyToClipboard = async (text: string, messageId: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
   };
 
   useEffect(() => {
@@ -102,7 +113,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -173,10 +184,10 @@ export default function Home() {
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    className={`max-w-xs lg:max-w-md px-4 py-3 rounded-xl shadow-sm ${
                       message.role === 'user'
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-100 text-gray-900'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                        : 'bg-gradient-to-r from-white to-gray-50 border border-gray-200 text-gray-900'
                     }`}
                   >
                     <div className="flex items-start space-x-2">
@@ -184,9 +195,24 @@ export default function Home() {
                         <Bot className="h-4 w-4 mt-0.5 text-gray-500 flex-shrink-0" />
                       )}
                       <div className="whitespace-pre-wrap">{message.content}</div>
-                      {message.role === 'user' && (
-                        <User className="h-4 w-4 mt-0.5 text-indigo-200 flex-shrink-0" />
-                      )}
+                      <div className="flex items-center space-x-2 mt-2">
+                        {message.role === 'assistant' && (
+                          <button
+                            onClick={() => copyToClipboard(message.content, message.id)}
+                            className="p-1 rounded hover:bg-gray-200 transition-colors"
+                            title="Copy to clipboard"
+                          >
+                            {copiedMessageId === message.id ? (
+                              <Check className="h-3 w-3 text-green-600" />
+                            ) : (
+                              <Copy className="h-3 w-3 text-gray-500" />
+                            )}
+                          </button>
+                        )}
+                        {message.role === 'user' && (
+                          <User className="h-4 w-4 text-indigo-200 flex-shrink-0" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -194,10 +220,14 @@ export default function Home() {
             )}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 text-gray-900 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-                    <span>AI is thinking...</span>
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 text-gray-900 max-w-xs lg:max-w-md px-4 py-3 rounded-lg shadow-sm">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                    </div>
+                    <span className="text-sm font-medium text-blue-700">AI is thinking...</span>
                   </div>
                 </div>
               </div>
