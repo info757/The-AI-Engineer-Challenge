@@ -106,10 +106,11 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Bot className="h-8 w-8 text-indigo-600" />
-                            <h1 className="text-2xl font-bold text-gray-900">Will's AI Assistant</h1>
-          </div>
+                      <div className="flex items-center space-x-3">
+              <Bot className="h-8 w-8 text-indigo-600" />
+              {/* eslint-disable-next-line react/no-unescaped-entities */}
+              <h1 className="text-2xl font-bold text-gray-900">Will&apos;s AI Assistant</h1>
+            </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -161,7 +162,8 @@ export default function Home() {
                 <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p>Start a conversation with the AI assistant!</p>
                 {!apiKey && (
-                  <p className="text-sm mt-2">Don't forget to add your OpenAI API key in settings.</p>
+                  /* eslint-disable-next-line react/no-unescaped-entities */
+                  <p className="text-sm mt-2">Don&apos;t forget to add your OpenAI API key in settings.</p>
                 )}
               </div>
             ) : (
