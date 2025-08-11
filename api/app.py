@@ -7,7 +7,7 @@ from pydantic import BaseModel
 # Import OpenAI client for interacting with OpenAI's API
 from openai import OpenAI
 import os
-from typing import Optional
+from typing import Optional, AsyncGenerator, Dict
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
@@ -16,9 +16,9 @@ app = FastAPI(title="OpenAI Chat API")
 # This allows the API to be accessed from different domains/origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows requests from any origin
-    allow_credentials=True,  # Allows cookies to be included in requests
-    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Allow specific frontend origins
+    allow_credentials=False,  # Disable credentials to avoid auth issues
+    allow_methods=["GET", "POST", "OPTIONS"],  # Allow specific HTTP methods
     allow_headers=["*"],  # Allows all headers in requests
 )
 
@@ -27,23 +27,27 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     developer_message: str  # Message from the developer/system
     user_message: str      # Message from the user
-    model: Optional[str] = "gpt-4.1-mini"  # Optional model selection with default
+    model: Optional[str] = "gpt-4o-mini"  # Optional model selection with default
     api_key: str          # OpenAI API key for authentication
 
 # Define the main chat endpoint that handles POST requests
 @app.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest) -> StreamingResponse:
     try:
+        # Debug: Check if API key is received
+        api_key_preview = request.api_key[:10] + "..." if len(request.api_key) > 10 else request.api_key
+        print(f"Received API key: {api_key_preview}")
+        
         # Initialize OpenAI client with the provided API key
         client = OpenAI(api_key=request.api_key)
         
         # Create an async generator function for streaming responses
-        async def generate():
+        async def generate() -> AsyncGenerator[str, None]:
             # Create a streaming chat completion request
             stream = client.chat.completions.create(
                 model=request.model,
                 messages=[
-                    {"role": "developer", "content": request.developer_message},
+                    {"role": "system", "content": request.developer_message},
                     {"role": "user", "content": request.user_message}
                 ],
                 stream=True  # Enable streaming response
@@ -59,11 +63,15 @@ async def chat(request: ChatRequest):
     
     except Exception as e:
         # Handle any errors that occur during processing
+        print(f"Error in chat endpoint: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Define a health check endpoint to verify API status
 @app.get("/api/health")
-async def health_check():
+async def health_check() -> Dict[str, str]:
     return {"status": "ok"}
 
 # Entry point for running the application directly
