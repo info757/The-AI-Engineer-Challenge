@@ -23,6 +23,8 @@ export default function Home() {
   const [developerMessage, setDeveloperMessage] = useState('You are a helpful AI assistant.');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
+  const [demoAvailable, setDemoAvailable] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -59,9 +61,28 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
+  // Check if demo mode is available on component mount
+  useEffect(() => {
+    const checkDemoStatus = async () => {
+      try {
+        const response = await fetch('/api/demo-status');
+        if (response.ok) {
+          const data = await response.json();
+          setDemoAvailable(data.demo_available);
+        }
+      } catch (error) {
+        console.error('Failed to check demo status:', error);
+      }
+    };
+    checkDemoStatus();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !apiKey.trim()) return;
+    if (!input.trim()) return;
+    
+    // Check if we have either demo mode or an API key
+    if (!demoMode && !apiKey.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -84,7 +105,8 @@ export default function Home() {
           developer_message: developerMessage,
           user_message: input,
           model: 'gpt-4o-mini',
-          api_key: apiKey,
+          api_key: demoMode ? undefined : apiKey,
+          use_demo_mode: demoMode,
         }),
       });
 
@@ -176,22 +198,55 @@ export default function Home() {
       {showSettings && (
         <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm transition-colors duration-300`}>
           <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                OpenAI API Key
-              </label>
-              <input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="sk-..."
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
-                  isDarkMode 
-                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
-                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
-                }`}
-              />
-            </div>
+            {/* Demo Mode Toggle */}
+            {demoAvailable && (
+              <div className="flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+              }">
+                <div>
+                  <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Demo Mode
+                  </label>
+                  <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Use the pre-configured API key (no personal key needed)
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDemoMode(!demoMode)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    demoMode 
+                      ? 'bg-indigo-600' 
+                      : isDarkMode ? 'bg-gray-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      demoMode ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+            
+            {/* API Key Input - only show if not in demo mode */}
+            {!demoMode && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  OpenAI API Key
+                </label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  placeholder="sk-..."
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                    isDarkMode 
+                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+            )}
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 System Message
@@ -221,9 +276,9 @@ export default function Home() {
               <div className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <Bot className={`h-12 w-12 mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
                 <p>Start a conversation with the AI assistant!</p>
-                {!apiKey && (
+                {!demoMode && !apiKey && (
                   // eslint-disable-next-line react/no-unescaped-entities
-                  <p className="text-sm mt-2">Don&apos;t forget to add your OpenAI API key in settings.</p>
+                  <p className="text-sm mt-2">Don&apos;t forget to add your OpenAI API key in settings or enable demo mode.</p>
                 )}
               </div>
             ) : (
@@ -322,7 +377,7 @@ export default function Home() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your message..."
-                disabled={isLoading || !apiKey}
+                disabled={isLoading || (!demoMode && !apiKey)}
                 className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
                   isDarkMode 
                     ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400 disabled:bg-gray-700 disabled:text-gray-500' 
@@ -331,7 +386,7 @@ export default function Home() {
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim() || !apiKey}
+                disabled={isLoading || !input.trim() || (!demoMode && !apiKey)}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="h-4 w-4" />

@@ -9,6 +9,9 @@ from openai import OpenAI
 import os
 from typing import Optional, AsyncGenerator, Dict
 
+# Get the default API key from environment variable (for demo mode)
+DEFAULT_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
 
@@ -28,18 +31,35 @@ class ChatRequest(BaseModel):
     developer_message: str  # Message from the developer/system
     user_message: str      # Message from the user
     model: Optional[str] = "gpt-4o-mini"  # Optional model selection with default
-    api_key: str          # OpenAI API key for authentication
+    api_key: Optional[str] = None  # Optional API key - if not provided, use default
+    use_demo_mode: Optional[bool] = False  # Flag to use demo mode (no API key required)
 
 # Define the main chat endpoint that handles POST requests
 @app.post("/api/chat")
 async def chat(request: ChatRequest) -> StreamingResponse:
     try:
-        # Debug: Check if API key is received
-        api_key_preview = request.api_key[:10] + "..." if len(request.api_key) > 10 else request.api_key
-        print(f"Received API key: {api_key_preview}")
+        # Determine which API key to use
+        if request.use_demo_mode:
+            # Use demo mode with default API key
+            if not DEFAULT_API_KEY:
+                raise HTTPException(status_code=500, detail="Demo mode not available - no default API key configured")
+            api_key_to_use = DEFAULT_API_KEY
+            print("Using demo mode with default API key")
+        elif request.api_key:
+            # Use user-provided API key
+            api_key_to_use = request.api_key
+            api_key_preview = api_key_to_use[:10] + "..." if len(api_key_to_use) > 10 else api_key_to_use
+            print(f"Using user-provided API key: {api_key_preview}")
+        else:
+            # Try to use default API key if available
+            if DEFAULT_API_KEY:
+                api_key_to_use = DEFAULT_API_KEY
+                print("No API key provided, using default API key")
+            else:
+                raise HTTPException(status_code=400, detail="No API key provided and no default key available")
         
-        # Initialize OpenAI client with the provided API key
-        client = OpenAI(api_key=request.api_key)
+        # Initialize OpenAI client with the determined API key
+        client = OpenAI(api_key=api_key_to_use)
         
         # Create an async generator function for streaming responses
         async def generate() -> AsyncGenerator[str, None]:
@@ -73,6 +93,11 @@ async def chat(request: ChatRequest) -> StreamingResponse:
 @app.get("/api/health")
 async def health_check() -> Dict[str, str]:
     return {"status": "ok"}
+
+# Define an endpoint to check demo mode availability
+@app.get("/api/demo-status")
+async def demo_status() -> Dict[str, bool]:
+    return {"demo_available": bool(DEFAULT_API_KEY)}
 
 # Entry point for running the application directly
 if __name__ == "__main__":
