@@ -1,76 +1,72 @@
-# OpenAI Chat API Backend
+# AI Chat API - Dual Mode Backend
 
-This is a FastAPI-based backend service that provides a streaming chat interface using OpenAI's API.
+This FastAPI backend supports two modes of operation:
 
-## Prerequisites
+## 🔑 User API Key Mode
+Users provide their own OpenAI API key for full control and privacy.
 
-- Python 3.8 or higher
-- pip (Python package manager)
-- An OpenAI API key
+## 🎯 Demo Mode  
+Uses a pre-configured API key for easy testing and demonstration.
 
-## Setup
+## Setup Instructions
 
-1. Create a virtual environment (recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-```
+### For Demo Mode (Recommended for testing):
+1. Set your OpenAI API key as an environment variable:
+   ```bash
+   export OPENAI_API_KEY="sk-your-api-key-here"
+   ```
 
-2. Install the required dependencies:
-```bash
-pip install fastapi uvicorn openai pydantic
-```
+2. For Vercel deployment, add the environment variable in your Vercel dashboard:
+   - Go to your project settings
+   - Add environment variable: `OPENAI_API_KEY`
+   - Set the value to your OpenAI API key
 
-## Running the Server
+### For Local Development:
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. Make sure you're in the `api` directory:
-```bash
-cd api
-```
+2. Set the environment variable:
+   ```bash
+   export OPENAI_API_KEY="sk-your-api-key-here"
+   ```
 
-2. Start the server:
-```bash
-python app.py
-```
-
-The server will start on `http://localhost:8000`
+3. Run the server:
+   ```bash
+   cd api
+   uvicorn app:app --reload --host 0.0.0.0 --port 8000
+   ```
 
 ## API Endpoints
 
-### Chat Endpoint
-- **URL**: `/api/chat`
-- **Method**: POST
-- **Request Body**:
+- `POST /api/chat` - Main chat endpoint
+- `GET /api/health` - Health check
+- `GET /api/demo-status` - Check if demo mode is available
+
+## Request Format
+
 ```json
 {
-    "developer_message": "string",
-    "user_message": "string",
-    "model": "gpt-4.1-mini",  // optional
-    "api_key": "your-openai-api-key"
+  "developer_message": "You are a helpful AI assistant.",
+  "user_message": "Hello!",
+  "model": "gpt-4o-mini",
+  "api_key": "sk-...",  // Optional if demo mode is enabled
+  "use_demo_mode": true  // Optional, defaults to false
 }
 ```
-- **Response**: Streaming text response
 
-### Health Check
-- **URL**: `/api/health`
-- **Method**: GET
-- **Response**: `{"status": "ok"}`
+## Features
 
-## API Documentation
+✅ **Dual Mode Support** - Choose between user API key or demo mode  
+✅ **Streaming Responses** - Real-time AI responses  
+✅ **Error Handling** - Comprehensive error messages  
+✅ **CORS Support** - Frontend integration ready  
+✅ **Health Checks** - Monitor API status  
 
-Once the server is running, you can access the interactive API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+## Security Notes
 
-## CORS Configuration
-
-The API is configured to accept requests from any origin (`*`). This can be modified in the `app.py` file if you need to restrict access to specific domains.
-
-## Error Handling
-
-The API includes basic error handling for:
-- Invalid API keys
-- OpenAI API errors
-- General server errors
-
-All errors will return a 500 status code with an error message. 
+- Demo mode uses environment variables for API key storage
+- User API keys are never stored on the server
+- CORS is configured for specific origins
+- All requests are validated using Pydantic models 
