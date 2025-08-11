@@ -1,13 +1,17 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Settings, Copy, Check } from 'lucide-react';
+import { Send, Bot, User, Loader2, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  reactions?: {
+    thumbsUp: boolean;
+    thumbsDown: boolean;
+  };
 }
 
 export default function Home() {
@@ -18,6 +22,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [developerMessage, setDeveloperMessage] = useState('You are a helpful AI assistant.');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -32,6 +37,22 @@ export default function Home() {
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
+  };
+
+  const toggleReaction = (messageId: string, reaction: 'thumbsUp' | 'thumbsDown') => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        const currentReactions = msg.reactions || { thumbsUp: false, thumbsDown: false };
+        return {
+          ...msg,
+          reactions: {
+            ...currentReactions,
+            [reaction]: !currentReactions[reaction]
+          }
+        };
+      }
+      return msg;
+    }));
   };
 
   useEffect(() => {
@@ -112,31 +133,51 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+      return (
+      <div className={`min-h-screen transition-colors duration-300 ${
+        isDarkMode 
+          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
+          : 'bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100'
+      }`}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-              <Bot className="h-8 w-8 text-indigo-600" />
+              <header className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-sm border-b transition-colors duration-300`}>
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Bot className={`h-8 w-8 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
               {/* eslint-disable-next-line react/no-unescaped-entities */}
-              <h1 className="text-2xl font-bold text-gray-900">Will&apos;s AI Assistant</h1>
+              <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Will&apos;s AI Assistant</h1>
             </div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <Settings className="h-5 w-5 text-gray-600" />
-          </button>
-        </div>
-      </header>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 rounded-lg transition-colors ${
+                  isDarkMode 
+                    ? 'hover:bg-gray-700 text-gray-300' 
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className={`p-2 rounded-lg transition-colors ${
+                  isDarkMode 
+                    ? 'hover:bg-gray-700 text-gray-300' 
+                    : 'hover:bg-gray-100 text-gray-600'
+                }`}
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        </header>
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="bg-white border-b shadow-sm">
+        <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm transition-colors duration-300`}>
           <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 OpenAI API Key
               </label>
               <input
@@ -144,11 +185,15 @@ export default function Home() {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="sk-..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 System Message
               </label>
               <textarea
@@ -156,7 +201,11 @@ export default function Home() {
                 onChange={(e) => setDeveloperMessage(e.target.value)}
                 placeholder="You are a helpful AI assistant."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
               />
             </div>
           </div>
@@ -165,12 +214,12 @@ export default function Home() {
 
       {/* Chat Container */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg overflow-hidden transition-colors duration-300`}>
           {/* Messages */}
           <div className="h-96 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">
-                <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <div className={`text-center py-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <Bot className={`h-12 w-12 mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`} />
                 <p>Start a conversation with the AI assistant!</p>
                 {!apiKey && (
                   // eslint-disable-next-line react/no-unescaped-entities
@@ -187,6 +236,8 @@ export default function Home() {
                     className={`max-w-xs lg:max-w-md px-4 py-3 rounded-xl shadow-sm ${
                       message.role === 'user'
                         ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                        : isDarkMode
+                        ? 'bg-gradient-to-r from-gray-700 to-gray-600 border border-gray-600 text-gray-100'
                         : 'bg-gradient-to-r from-white to-gray-50 border border-gray-200 text-gray-900'
                     }`}
                   >
@@ -197,17 +248,43 @@ export default function Home() {
                       <div className="whitespace-pre-wrap">{message.content}</div>
                       <div className="flex items-center space-x-2 mt-2">
                         {message.role === 'assistant' && (
-                          <button
-                            onClick={() => copyToClipboard(message.content, message.id)}
-                            className="p-1 rounded hover:bg-gray-200 transition-colors"
-                            title="Copy to clipboard"
-                          >
-                            {copiedMessageId === message.id ? (
-                              <Check className="h-3 w-3 text-green-600" />
-                            ) : (
-                              <Copy className="h-3 w-3 text-gray-500" />
-                            )}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => copyToClipboard(message.content, message.id)}
+                              className={`p-1 rounded transition-colors ${
+                                isDarkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-200'
+                              }`}
+                              title="Copy to clipboard"
+                            >
+                              {copiedMessageId === message.id ? (
+                                <Check className="h-3 w-3 text-green-500" />
+                              ) : (
+                                <Copy className={`h-3 w-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => toggleReaction(message.id, 'thumbsUp')}
+                              className={`p-1 rounded transition-colors ${
+                                message.reactions?.thumbsUp 
+                                  ? 'text-green-500' 
+                                  : isDarkMode ? 'text-gray-400 hover:text-green-400' : 'text-gray-500 hover:text-green-600'
+                              }`}
+                              title="Thumbs up"
+                            >
+                              <ThumbsUp className="h-3 w-3" />
+                            </button>
+                            <button
+                              onClick={() => toggleReaction(message.id, 'thumbsDown')}
+                              className={`p-1 rounded transition-colors ${
+                                message.reactions?.thumbsDown 
+                                  ? 'text-red-500' 
+                                  : isDarkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-600'
+                              }`}
+                              title="Thumbs down"
+                            >
+                              <ThumbsDown className="h-3 w-3" />
+                            </button>
+                          </>
                         )}
                         {message.role === 'user' && (
                           <User className="h-4 w-4 text-indigo-200 flex-shrink-0" />
@@ -236,7 +313,9 @@ export default function Home() {
           </div>
 
           {/* Input Form */}
-          <div className="border-t bg-gray-50 p-4">
+          <div className={`border-t p-4 transition-colors duration-300 ${
+            isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+          }`}>
             <form onSubmit={handleSubmit} className="flex space-x-4">
               <input
                 type="text"
@@ -244,7 +323,11 @@ export default function Home() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your message..."
                 disabled={isLoading || !apiKey}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500"
+                className={`flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-600 border-gray-500 text-white placeholder-gray-400 disabled:bg-gray-700 disabled:text-gray-500' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 disabled:bg-gray-100 disabled:text-gray-500'
+                }`}
               />
               <button
                 type="submit"
