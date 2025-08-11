@@ -109,7 +109,7 @@ export default function Home() {
                       <div className="flex items-center space-x-3">
               <Bot className="h-8 w-8 text-indigo-600" />
               {/* eslint-disable-next-line react/no-unescaped-entities */}
-              <h1 className="text-2xl font-bold text-gray-900">Will's AI Assistant</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Will&apos;s AI Assistant</h1>
             </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -162,8 +162,8 @@ export default function Home() {
                 <Bot className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p>Start a conversation with the AI assistant!</p>
                 {!apiKey && (
-                  /* eslint-disable-next-line react/no-unescaped-entities */
-                  <p className="text-sm mt-2">Don't forget to add your OpenAI API key in settings.</p>
+                  // eslint-disable-next-line react/no-unescaped-entities
+                  <p className="text-sm mt-2">Don&apos;t forget to add your OpenAI API key in settings.</p>
                 )}
               </div>
             ) : (
