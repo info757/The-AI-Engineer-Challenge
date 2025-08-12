@@ -26,7 +26,32 @@ export default function Home() {
   const [demoMode, setDemoMode] = useState(false);
   const [demoAvailable, setDemoAvailable] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Pre-built system message templates
+  const systemMessageTemplates = [
+    {
+      name: "Helpful Assistant",
+      message: "You are a helpful AI assistant."
+    },
+    {
+      name: "Creative Writer",
+      message: "You are a creative writer who helps with storytelling, poetry, and creative content. Be imaginative and engaging."
+    },
+    {
+      name: "Code Expert",
+      message: "You are a programming expert. Provide clear, well-commented code examples and explain technical concepts thoroughly."
+    },
+    {
+      name: "Math Tutor",
+      message: "You are a patient math tutor. Break down complex problems step by step and explain your reasoning clearly."
+    },
+    {
+      name: "Business Advisor",
+      message: "You are a business consultant. Provide strategic advice, market analysis, and practical business solutions."
+    }
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -111,7 +136,7 @@ export default function Home() {
         body: JSON.stringify({
           developer_message: developerMessage,
           user_message: input,
-          model: 'gpt-4o-mini',
+          model: selectedModel,
           api_key: demoMode ? undefined : apiKey,
           use_demo_mode: demoMode,
         }),
@@ -260,10 +285,54 @@ export default function Home() {
                 />
               </div>
             )}
+            
+            {/* Model Selection */}
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                AI Model
+              </label>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              >
+                <option value="gpt-4o-mini">GPT-4o Mini (Fast & Efficient)</option>
+                <option value="gpt-4o">GPT-4o (Most Capable)</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Budget Friendly)</option>
+              </select>
+            </div>
+            
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 System Message
               </label>
+              
+              {/* Quick Templates */}
+              <div className="mb-2">
+                <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Quick Templates:
+                </label>
+                <div className="flex flex-wrap gap-1">
+                  {systemMessageTemplates.map((template) => (
+                    <button
+                      key={template.name}
+                      onClick={() => setDeveloperMessage(template.message)}
+                      className={`px-2 py-1 text-xs rounded transition-colors ${
+                        isDarkMode 
+                          ? 'bg-gray-600 hover:bg-gray-500 text-gray-200' 
+                          : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                      }`}
+                    >
+                      {template.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
               <textarea
                 value={developerMessage}
                 onChange={(e) => setDeveloperMessage(e.target.value)}
