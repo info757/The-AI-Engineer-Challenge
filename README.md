@@ -1,186 +1,216 @@
-<p align = "center" draggable=”false” ><img src="https://github.com/AI-Maker-Space/LLM-Dev-101/assets/37101144/d1343317-fa2f-41e1-8af1-1dbb18399719" 
-     width="200px"
-     height="auto"/>
+# 🚀 Will's AI Assistant - Advanced LLM Chat Application
+
+<p align="center">
+  <img src="https://github.com/AI-Maker-Space/LLM-Dev-101/assets/37101144/d1343317-fa2f-41e1-8af1-1dbb18399719" 
+       width="200px" height="auto"/>
 </p>
 
+## 🌟 **Welcome to the Future of AI Chat!**
 
-## <h1 align="center" id="heading"> 👋 Welcome to the AI Engineer Challenge</h1>
+> **Built with ❤️ for the AI Engineer Challenge**  
+> A feature-rich, production-ready LLM application that showcases modern web development best practices!
 
-## 🤖 Your First Vibe Coding LLM Application
+### ✨ **What Makes This App Special**
 
-> If you are a novice, and need a bit more help to get your dev environment off the ground, check out this [Setup Guide](docs/GIT_SETUP.md). This guide will walk you through the 'git' setup you need to get started.
+🎯 **Dual-Mode Operation** - Demo mode (no API key needed) OR personal API key for full control  
+🌙 **Dark/Light Mode** - Beautiful theme switching with smooth transitions  
+👍👎 **Message Reactions** - Thumbs up/down on AI responses  
+📋 **Copy to Clipboard** - One-click message copying  
+✨ **Animated Typing** - Real-time streaming with bouncing dots  
+🎨 **Modern UI/UX** - Gradient backgrounds, smooth animations, responsive design  
+🔒 **Secure** - Password-protected API keys, HTTPS only  
+📱 **Mobile Ready** - Works perfectly on all devices  
 
-> For additional context on LLM development environments and API key setup, you can also check out our [Interactive Dev Environment for LLM Development](https://github.com/AI-Maker-Space/Interactive-Dev-Environment-for-AI-Engineers).
+---
 
-In this repository, we'll walk you through the steps to create a LLM (Large Language Model) powered application with a vibe-coded frontend!
+## 🚀 **Live Demo**
 
-Are you ready? Let's get started!
+**Try it now:** [Your Vercel URL here]
 
-<details>
-  <summary>🖥️ Accessing "gpt-4.1-mini" (ChatGPT) like a developer</summary>
+No setup required - just start chatting! 🎉
 
-1. Head to [this notebook](https://colab.research.google.com/drive/1sT7rzY_Lb1_wS0ELI1JJfff0NUEcSD72?usp=sharing) and follow along with the instructions!
+---
 
-2. Complete the notebook and try out your own system/assistant messages!
+## 🛠️ **Tech Stack**
 
-That's it! Head to the next step and start building your application!
+### **Frontend**
+- ⚡ **Next.js 14** - React framework with App Router
+- 🎨 **Tailwind CSS** - Utility-first styling
+- 🔄 **TypeScript** - Type-safe development
+- 📱 **Responsive Design** - Mobile-first approach
 
-</details>
+### **Backend**
+- 🐍 **FastAPI** - High-performance Python web framework
+- 🤖 **OpenAI API** - GPT-4o-mini integration
+- 🔄 **Streaming Responses** - Real-time AI output
+- 🛡️ **CORS & Security** - Production-ready configuration
 
+### **Deployment**
+- ☁️ **Vercel** - Frontend and serverless functions
+- 🔧 **Environment Variables** - Secure API key management
+- 📊 **Auto-deployment** - Git-based CI/CD
 
-<details>
-  <summary>🏗️ Forking & Cloning This Repository</summary>
+---
 
-Before you begin, make sure you have:
+## 🎯 **Features Deep Dive**
 
-1. 👤 A GitHub account (you'll need to replace `YOUR_GITHUB_USERNAME` with your actual username)
-2. 🔧 Git installed on your local machine
-3. 💻 A code editor (like Cursor, VS Code, etc.)
-4. ⌨️ Terminal access (Mac/Linux) or Command Prompt/PowerShell (Windows)
-5. 🔑 A GitHub Personal Access Token (for authentication)
+### **🤖 Dual-Mode AI Chat**
+- **Demo Mode**: Pre-configured API key for instant testing
+- **Personal Mode**: Use your own OpenAI API key for privacy
+- **Smart Fallback**: Automatic mode detection and switching
 
-Got everything in place? Let's move on!
+### **🎨 Beautiful User Interface**
+- **Dark/Light Theme**: Toggle between themes with smooth transitions
+- **Message Reactions**: Interactive thumbs up/down on AI responses
+- **Copy to Clipboard**: One-click message copying with visual feedback
+- **Animated Typing**: Real-time streaming with bouncing dots animation
+- **Responsive Design**: Perfect on desktop, tablet, and mobile
 
-1. Fork [this](https://github.com/AI-Maker-Space/The-AI-Engineer-Challenge) repo!
+### **🔒 Security & Privacy**
+- **Password Fields**: Secure API key input
+- **No Key Storage**: API keys never stored on server
+- **HTTPS Only**: All communication encrypted
+- **Environment Variables**: Secure configuration management
 
-     ![image](https://i.imgur.com/bhjySNh.png)
+---
 
-1. Clone your newly created repo.
+## 🚀 **Quick Start**
 
-     ``` bash
-     # First, navigate to where you want the project folder to be created
-     cd PATH_TO_DESIRED_PARENT_DIRECTORY
+### **Option 1: Try the Live Demo**
+1. Visit [Your Vercel URL]
+2. Click "Demo Mode" in settings
+3. Start chatting! 🎉
 
-     # Then clone (this will create a new folder called The-AI-Engineer-Challenge)
-     git clone git@github.com:<YOUR GITHUB USERNAME>/The-AI-Engineer-Challenge.git
-     ```
+### **Option 2: Run Locally**
 
-     > Note: This command uses SSH. If you haven't set up SSH with GitHub, the command will fail. In that case, use HTTPS by replacing `git@github.com:` with `https://github.com/` - you'll then be prompted for your GitHub username and personal access token.
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/The-AI-Engineer-Challenge.git
+cd The-AI-Engineer-Challenge
 
-2. Verify your git setup:
+# Install frontend dependencies
+cd frontend
+npm install
 
-     ```bash
-     # Check that your remote is set up correctly
-     git remote -v
+# Install backend dependencies
+cd ../api
+pip install -r requirements.txt
 
-     # Check the status of your repository
-     git status
+# Set up environment variables
+export OPENAI_API_KEY="sk-your-api-key-here"
 
-     # See which branch you're on
-     git branch
-     ```
+# Start the backend (Terminal 1)
+cd api
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 
-     <!-- > Need more help with git? Check out our [Detailed Git Setup Guide](docs/GIT_SETUP.md) for a comprehensive walkthrough of git configuration and best practices. -->
-
-3. Open the freshly cloned repository inside Cursor!
-
-     ```bash
-     cd The-AI-Engineering-Challenge
-     cursor .
-     ```
-
-4. Check out the existing backend code found in `/api/app.py`
-
-</details>
-
-<details>
-  <summary>🔥Setting Up for Vibe Coding Success </summary>
-
-While it is a bit counter-intuitive to set things up before jumping into vibe-coding - it's important to remember that there exists a gradient betweeen AI-Assisted Development and Vibe-Coding. We're only reaching *slightly* into AI-Assisted Development for this challenge, but it's worth it!
-
-1. Check out the rules in `.cursor/rules/` and add theme-ing information like colour schemes in `frontend-rule.mdc`! You can be as expressive as you'd like in these rules!
-2. We're going to index some docs to make our application more likely to succeed. To do this - we're going to start with `CTRL+SHIFT+P` (or `CMD+SHIFT+P` on Mac) and we're going to type "custom doc" into the search bar. 
-
-     ![image](https://i.imgur.com/ILx3hZu.png)
-3. We're then going to copy and paste `https://nextjs.org/docs` into the prompt.
-
-     ![image](https://i.imgur.com/psBjpQd.png)
-
-4. We're then going to use the default configs to add these docs to our available and indexed documents.
-
-     ![image](https://i.imgur.com/LULLeaF.png)
-
-5. After that - you will do the same with Vercel's documentation. After which you should see:
-
-     ![image](https://i.imgur.com/hjyXhhC.png) 
-
-</details>
-
-<details>
-  <summary>😎 Vibe Coding a Front End for the FastAPI Backend</summary>
-
-1. Use `Command-L` or `CTRL-L` to open the Cursor chat console. 
-
-2. Set the chat settings to the following:
-
-     ![image](https://i.imgur.com/LSgRSgF.png)
-
-3. Ask Cursor to create a frontend for your application. Iterate as much as you like!
-
-4. Run the frontend using the instructions Cursor provided. 
-
-> NOTE: If you run into any errors, copy and paste them back into the Cursor chat window - and ask Cursor to fix them!
-
-> NOTE: You have been provided with a backend in the `/api` folder - please ensure your Front End integrates with it!
-
-</details>
-
-<details>
-  <summary>🚀 Deploying Your First LLM-powered Application with Vercel</summary>
-
-1. Ensure you have signed into [Vercel](https://vercel.com/) with your GitHub account.
-
-2. Ensure you have `npm` (this may have been installed in the previous vibe-coding step!) - if you need help with that, ask Cursor!
-
-3. Run the command:
-
-     ```bash
-     npm install -g vercel
-     ```
-
-4. Run the command:
-
-     ```bash
-     vercel
-     ```
-
-5. Follow the in-terminal instructions. (Below is an example of what you will see!)
-
-     ![image](https://i.imgur.com/D1iKGCq.png)
-
-6. Once the build is completed - head to the provided link and try out your app!
-
-> NOTE: Remember, if you run into any errors - ask Cursor to help you fix them!
-
-</details>
-
-### Vercel Link to Share
-
-You'll want to make sure you share you *domains* hyperlink to ensure people can access your app!
-
-![image](https://i.imgur.com/mpXIgIz.png)
-
-> NOTE: Test this is the public link by trying to open your newly deployed site in an Incognito browser tab!
-
-### 🎉 Congratulations! 
-
-You just deployed your first LLM-powered application! 🚀🚀🚀 Get on linkedin and post your results and experience! Make sure to tag us at @AIMakerspace!
-
-Here's a template to get your post started!
-
+# Start the frontend (Terminal 2)
+cd frontend
+npm run dev
 ```
-🚀🎉 Exciting News! 🎉🚀
 
-🏗️ Today, I'm thrilled to announce that I've successfully built and shipped my first-ever LLM using the powerful combination of , and the OpenAI API! 🖥️
+Visit `http://localhost:3000` and start chatting! 🚀
 
-Check it out 👇
-[LINK TO APP]
+---
 
-A big shoutout to the @AI Makerspace for all making this possible. Couldn't have done it without the incredible community there. 🤗🙏
+## 🔧 **Configuration**
 
-Looking forward to building with the community! 🙌✨ Here's to many more creations ahead! 🥂🎉
+### **Environment Variables**
 
-Who else is diving into the world of AI? Let's connect! 🌐💡
+For demo mode to work, set these in your Vercel dashboard:
 
-#FirstLLMApp 
+```bash
+OPENAI_API_KEY=sk-your-openai-api-key-here
 ```
+
+### **API Endpoints**
+
+- `POST /api/chat` - Main chat endpoint
+- `GET /api/health` - Health check
+- `GET /api/demo-status` - Demo mode availability
+
+---
+
+## 🎨 **Customization**
+
+### **Theming**
+The app uses Tailwind CSS with custom gradients and animations. Modify colors in:
+- `frontend/src/app/globals.css` - Global styles
+- `frontend/src/app/page.tsx` - Component-specific styling
+
+### **AI Behavior**
+Customize the AI's personality by modifying the system message in the settings panel.
+
+---
+
+## 📊 **Performance & Scalability**
+
+- ⚡ **Streaming Responses** - Real-time AI output
+- 🔄 **Optimized Rendering** - React best practices
+- 📱 **Mobile Optimized** - Responsive design
+- 🚀 **Vercel Edge** - Global CDN deployment
+
+---
+
+## 🤝 **Contributing**
+
+This project was built for the AI Engineer Challenge. Feel free to fork and enhance!
+
+### **Development Workflow**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+---
+
+## 📈 **Future Enhancements**
+
+- 🔍 **Message Search** - Find past conversations
+- 📁 **Conversation Export** - Save chats as files
+- 🎭 **Custom AI Personalities** - Multiple assistant types
+- 📊 **Usage Analytics** - Track conversation patterns
+- 🔗 **API Integration** - Connect to other services
+
+---
+
+## 🏆 **AI Engineer Challenge Submission**
+
+This application demonstrates:
+
+✅ **Modern Web Development** - Next.js, FastAPI, TypeScript  
+✅ **AI Integration** - OpenAI API with streaming  
+✅ **Production Deployment** - Vercel with CI/CD  
+✅ **User Experience** - Intuitive, responsive design  
+✅ **Security Best Practices** - Secure API key handling  
+✅ **Documentation** - Comprehensive setup guides  
+
+---
+
+## 📞 **Support & Community**
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/YOUR_USERNAME/The-AI-Engineer-Challenge/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/YOUR_USERNAME/The-AI-Engineer-Challenge/discussions)
+- 📧 **Contact**: [Your Email]
+
+---
+
+## 📄 **License**
+
+MIT License - feel free to use this code for your own projects!
+
+---
+
+## 🙏 **Acknowledgments**
+
+- **AI Makerspace** - For the amazing challenge and community
+- **OpenAI** - For the powerful GPT-4o-mini API
+- **Vercel** - For seamless deployment
+- **Next.js Team** - For the incredible React framework
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ for the AI Engineer Challenge</strong><br>
+  <em>Ready to revolutionize AI chat experiences! 🚀</em>
+</p>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Send, Bot, User, Loader2, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -25,6 +25,7 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [demoAvailable, setDemoAvailable] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -69,9 +70,12 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           setDemoAvailable(data.demo_available);
+        } else {
+          console.warn('Demo status check failed:', response.status);
         }
       } catch (error) {
         console.error('Failed to check demo status:', error);
+        setError('Unable to check demo mode availability');
       }
     };
     checkDemoStatus();
@@ -83,6 +87,9 @@ export default function Home() {
     
     // Check if we have either demo mode or an API key
     if (!demoMode && !apiKey.trim()) return;
+
+    // Clear any previous errors
+    setError(null);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -144,9 +151,11 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      setError(errorMessage);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
-        content: 'Sorry, there was an error processing your request.',
+        content: `Sorry, there was an error: ${errorMessage}`,
         role: 'assistant',
         timestamp: new Date(),
       }]);
@@ -177,6 +186,8 @@ export default function Home() {
                     ? 'hover:bg-gray-700 text-gray-300' 
                     : 'hover:bg-gray-100 text-gray-600'
                 }`}
+                aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
+                title={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
               >
                 {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
@@ -187,6 +198,8 @@ export default function Home() {
                     ? 'hover:bg-gray-700 text-gray-300' 
                     : 'hover:bg-gray-100 text-gray-600'
                 }`}
+                aria-label="Open settings"
+                title="Settings"
               >
                 <Settings className="h-5 w-5" />
               </button>
@@ -263,6 +276,24 @@ export default function Home() {
                 }`}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="max-w-4xl mx-auto px-4 py-2">
+          <div className={`${isDarkMode ? 'bg-red-900 border-red-700' : 'bg-red-50 border-red-200'} border rounded-lg p-3 flex items-center space-x-2`}>
+            <AlertCircle className={`h-5 w-5 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
+            <span className={`text-sm ${isDarkMode ? 'text-red-200' : 'text-red-800'}`}>
+              {error}
+            </span>
+            <button
+              onClick={() => setError(null)}
+              className={`ml-auto text-xs px-2 py-1 rounded ${isDarkMode ? 'hover:bg-red-800' : 'hover:bg-red-100'}`}
+            >
+              Dismiss
+            </button>
           </div>
         </div>
       )}
