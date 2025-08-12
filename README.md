@@ -25,7 +25,7 @@
 
 ## 🚀 **Live Demo**
 
-**Try it now:** [Your Vercel URL here]
+**Try it now:** [https://the-ai-engineer-challenge-zeta-navy.vercel.app/](https://the-ai-engineer-challenge-zeta-navy.vercel.app/)
 
 No setup required - just start chatting! 🎉
 
@@ -77,7 +77,7 @@ No setup required - just start chatting! 🎉
 ## 🚀 **Quick Start**
 
 ### **Option 1: Try the Live Demo**
-1. Visit [Your Vercel URL]
+1. Visit [https://the-ai-engineer-challenge-zeta-navy.vercel.app/](https://the-ai-engineer-challenge-zeta-navy.vercel.app/)
 2. Click "Demo Mode" in settings
 3. Start chatting! 🎉
 
