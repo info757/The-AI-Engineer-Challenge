@@ -13,6 +13,8 @@
 ### ✨ **What Makes This App Special**
 
 🎯 **Dual-Mode Operation** - Demo mode (no API key needed) OR personal API key for full control  
+🤖 **AI Model Selection** - Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo  
+🎭 **AI Personality Templates** - Pre-built personalities (Code Expert, Creative Writer, Math Tutor, etc.)  
 🌙 **Dark/Light Mode** - Beautiful theme switching with smooth transitions  
 👍👎 **Message Reactions** - Thumbs up/down on AI responses  
 📋 **Copy to Clipboard** - One-click message copying  
@@ -54,9 +56,10 @@ No setup required - just start chatting! 🎉
 
 ## 🎯 **Features Deep Dive**
 
-### **🤖 Dual-Mode AI Chat**
-- **Demo Mode**: Pre-configured API key for instant testing
-- **Personal Mode**: Use your own OpenAI API key for privacy
+### **🤖 Advanced AI Chat**
+- **Dual-Mode Operation**: Demo mode (no API key) OR personal API key for privacy
+- **Model Selection**: Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo
+- **AI Personality Templates**: Quick-select from Code Expert, Creative Writer, Math Tutor, Business Advisor, or create custom
 - **Smart Fallback**: Automatic mode detection and switching
 
 ### **🎨 Beautiful User Interface**
@@ -138,7 +141,10 @@ The app uses Tailwind CSS with custom gradients and animations. Modify colors in
 - `frontend/src/app/page.tsx` - Component-specific styling
 
 ### **AI Behavior**
-Customize the AI's personality by modifying the system message in the settings panel.
+- **Model Selection**: Choose the best AI model for your needs (speed vs. capability vs. cost)
+- **Personality Templates**: Quick-select from pre-built AI personalities
+- **Custom System Messages**: Create your own AI personality and behavior
+- **Real-time Streaming**: See AI responses as they're generated
 
 ---
 
@@ -168,9 +174,11 @@ This project was built for the AI Engineer Challenge. Feel free to fork and enha
 
 - 🔍 **Message Search** - Find past conversations
 - 📁 **Conversation Export** - Save chats as files
-- 🎭 **Custom AI Personalities** - Multiple assistant types
+- 🎭 **More AI Personalities** - Additional specialized templates
 - 📊 **Usage Analytics** - Track conversation patterns
 - 🔗 **API Integration** - Connect to other services
+- 🎨 **Custom Themes** - User-defined color schemes
+- 📱 **Mobile App** - Native iOS/Android versions
 
 ---
 
@@ -179,11 +187,12 @@ This project was built for the AI Engineer Challenge. Feel free to fork and enha
 This application demonstrates:
 
 ✅ **Modern Web Development** - Next.js, FastAPI, TypeScript  
-✅ **AI Integration** - OpenAI API with streaming  
+✅ **AI Integration** - OpenAI API with streaming and multiple models  
 ✅ **Production Deployment** - Vercel with CI/CD  
-✅ **User Experience** - Intuitive, responsive design  
-✅ **Security Best Practices** - Secure API key handling  
-✅ **Documentation** - Comprehensive setup guides  
+✅ **User Experience** - Intuitive, responsive design with dark mode  
+✅ **Security Best Practices** - Secure API key handling and dual-mode operation  
+✅ **Documentation** - Comprehensive setup guides and feature explanations  
+✅ **Advanced Features** - AI personality templates, message reactions, copy-to-clipboard  
 
 ---
 

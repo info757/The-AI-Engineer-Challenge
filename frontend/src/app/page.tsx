@@ -29,7 +29,8 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Pre-built system message templates
+  // Pre-built system message templates for quick AI personality customization
+  // Users can select from these templates or create their own custom system messages
   const systemMessageTemplates = [
     {
       name: "Helpful Assistant",
@@ -286,7 +287,7 @@ export default function Home() {
               </div>
             )}
             
-            {/* Model Selection */}
+            {/* AI Model Selection - Choose between different OpenAI models */}
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 AI Model
@@ -311,7 +312,7 @@ export default function Home() {
                 System Message
               </label>
               
-              {/* Quick Templates */}
+              {/* Quick Templates - Pre-built AI personalities for instant customization */}
               <div className="mb-2">
                 <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   Quick Templates:
@@ -326,6 +327,7 @@ export default function Home() {
                           ? 'bg-gray-600 hover:bg-gray-500 text-gray-200' 
                           : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                       }`}
+                      title={`Switch to ${template.name} personality`}
                     >
                       {template.name}
                     </button>
