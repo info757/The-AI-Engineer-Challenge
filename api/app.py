@@ -1,4 +1,5 @@
 # Import required FastAPI components for building the API
+import sys
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,7 +12,7 @@ from auth import verify_password, get_password_hash, create_access_token, verify
 # Import OpenAI client for interacting with OpenAI's API
 from openai import OpenAI
 import os
-from typing import Optional, AsyncGenerator, Dict
+from typing import Optional, AsyncGenerator, Dict, List
 from sqlalchemy.orm import Session
 from datetime import datetime
 
@@ -20,6 +21,10 @@ DEFAULT_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # Security scheme for JWT tokens
 security = HTTPBearer()
+
+# Check Python version compatibility
+if sys.version_info < (3, 8):
+    raise RuntimeError("Python 3.8 or higher is required")
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="AI Chat API with User Management")
@@ -33,7 +38,7 @@ async def startup_event():
 # This allows the API to be accessed from different domains/origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # Allow specific frontend origins
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001", "http://localhost:3002", "http://127.0.0.1:3002"],  # Allow specific frontend origins
     allow_credentials=False,  # Disable credentials to avoid auth issues
     allow_methods=["GET", "POST", "OPTIONS"],  # Allow specific HTTP methods
     allow_headers=["*"],  # Allows all headers in requests
@@ -125,7 +130,7 @@ def create_api_key(api_key_data: APIKeyCreate, current_user: User = Depends(get_
     db.refresh(db_api_key)
     return db_api_key
 
-@app.get("/api/api-keys", response_model=list[APIKeyResponse])
+@app.get("/api/api-keys", response_model=List[APIKeyResponse])
 def get_user_api_keys(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get all API keys for the current user"""
     api_keys = db.query(UserAPIKey).filter(UserAPIKey.user_id == current_user.id).all()

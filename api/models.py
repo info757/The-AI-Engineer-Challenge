@@ -1,10 +1,8 @@
 # Database models for user management and API key storage
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from datetime import datetime
-
-Base = declarative_base()
+from database import Base
 
 class User(Base):
     """User model for authentication and account management"""

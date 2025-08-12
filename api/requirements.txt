@@ -1,3 +1,4 @@
+# Python 3.8+ compatible dependencies
 # FastAPI web framework for building APIs
 fastapi==0.104.1
 # ASGI server for running FastAPI applications

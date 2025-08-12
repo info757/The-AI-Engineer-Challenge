@@ -4,6 +4,8 @@
 import { useState, useRef, useEffect } from 'react';
 // Lucide React icons for UI elements
 import { Send, Bot, User, Loader2, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
+// API configuration
+import { API_ENDPOINTS } from '../config/api';
 
 // TypeScript interface for chat messages
 interface Message {
@@ -76,13 +78,13 @@ export default function Home() {
   };
 
   // Authentication functions
-  const login = async (username: string, password: string) => {
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+                const login = async (username: string, password: string) => {
+                try {
+                  const response = await fetch(API_ENDPOINTS.login, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                  });
       
       if (response.ok) {
         const data = await response.json();
@@ -100,13 +102,13 @@ export default function Home() {
     }
   };
 
-  const register = async (username: string, email: string, password: string) => {
-    try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
-      });
+                const register = async (username: string, email: string, password: string) => {
+                try {
+                  const response = await fetch(API_ENDPOINTS.register, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password }),
+                  });
       
       if (response.ok) {
         // Auto-login after successful registration
@@ -129,11 +131,11 @@ export default function Home() {
     setMessages([]);
   };
 
-  const fetchUserData = async (token: string) => {
-    try {
-      const response = await fetch('/api/me', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+                const fetchUserData = async (token: string) => {
+                try {
+                  const response = await fetch(API_ENDPOINTS.me, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                  });
       if (response.ok) {
         const userData = await response.json();
         setCurrentUser(userData);
@@ -143,11 +145,11 @@ export default function Home() {
     }
   };
 
-  const fetchUserAPIKeys = async (token: string) => {
-    try {
-      const response = await fetch('/api/api-keys', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
+                const fetchUserAPIKeys = async (token: string) => {
+                try {
+                  const response = await fetch(API_ENDPOINTS.apiKeys, {
+                    headers: { 'Authorization': `Bearer ${token}` },
+                  });
       if (response.ok) {
         const keys = await response.json();
         setUserAPIKeys(keys);
@@ -160,16 +162,16 @@ export default function Home() {
     }
   };
 
-  const addAPIKey = async (apiKey: string, keyName: string = 'Default') => {
-    try {
-      const response = await fetch('/api/api-keys', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ api_key: apiKey, key_name: keyName }),
-      });
+                const addAPIKey = async (apiKey: string, keyName: string = 'Default') => {
+                try {
+                  const response = await fetch(API_ENDPOINTS.apiKeys, {
+                    method: 'POST',
+                    headers: { 
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ api_key: apiKey, key_name: keyName }),
+                  });
       
       if (response.ok) {
         await fetchUserAPIKeys(authToken!);
@@ -217,7 +219,7 @@ export default function Home() {
   useEffect(() => {
     const checkDemoStatus = async () => {
       try {
-        const response = await fetch('/api/demo-status');
+        const response = await fetch(API_ENDPOINTS.demoStatus);
         if (response.ok) {
           const data = await response.json();
           setDemoAvailable(data.demo_available);
@@ -258,7 +260,7 @@ export default function Home() {
 
     try {
       // Choose the appropriate endpoint based on demo mode
-      const endpoint = demoMode ? '/api/chat-demo' : '/api/chat';
+      const endpoint = demoMode ? API_ENDPOINTS.chatDemo : API_ENDPOINTS.chat;
       const headers: any = {
         'Content-Type': 'application/json',
       };

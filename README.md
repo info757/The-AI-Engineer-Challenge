@@ -56,9 +56,51 @@ The-AI-Engineer-Challenge/
 └── ⚙️ vercel.json                   # Deployment configuration
 ```
 
-## 🛠️ **Tech Stack**
+## 🛠️ **Quick Start for Instructors**
 
-### **Frontend**
+### **Prerequisites**
+- Python 3.8 or higher
+- Node.js 18 or higher
+- OpenAI API key (optional - demo mode available)
+
+### **Backend Setup (FastAPI)**
+```bash
+# Navigate to API directory
+cd api
+
+# Run setup script (automatically checks Python version and installs dependencies)
+python3 setup.py
+
+# Or manually:
+python3 -m pip install -r requirements.txt
+
+# Set your OpenAI API key (optional - demo mode works without it)
+export OPENAI_API_KEY="your-api-key-here"
+
+# Start the server
+python3 -m uvicorn app:app --reload --host 127.0.0.1 --port 8000
+```
+
+### **Frontend Setup (Next.js)**
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+### **Test the Application**
+1. Backend API: http://localhost:8000/docs
+2. Frontend: http://localhost:3000
+3. Demo mode works without API key!
+
+---
+
+## 🛠️ **Tech Stack**
 - ⚡ **Next.js 14** - React framework with App Router
 - 🎨 **Tailwind CSS** - Utility-first styling
 - 🔄 **TypeScript** - Type-safe development
