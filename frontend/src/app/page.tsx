@@ -1,33 +1,37 @@
 'use client';
 
+// React hooks for state management and side effects
 import { useState, useRef, useEffect } from 'react';
+// Lucide React icons for UI elements
 import { Send, Bot, User, Loader2, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
 
+// TypeScript interface for chat messages
 interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-  reactions?: {
+  id: string;                    // Unique identifier for each message
+  content: string;               // The message text content
+  role: 'user' | 'assistant';    // Who sent the message
+  timestamp: Date;               // When the message was sent
+  reactions?: {                  // Optional user reactions to the message
     thumbsUp: boolean;
     thumbsDown: boolean;
   };
 }
 
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showSettings, setShowSettings] = useState(false);
-  const [developerMessage, setDeveloperMessage] = useState('You are a helpful AI assistant.');
-  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
-  const [demoAvailable, setDemoAvailable] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // State management for chat functionality
+  const [messages, setMessages] = useState<Message[]>([]);           // Chat message history
+  const [input, setInput] = useState('');                            // Current input field value
+  const [isLoading, setIsLoading] = useState(false);                 // Loading state for API calls
+  const [apiKey, setApiKey] = useState('');                          // User's OpenAI API key
+  const [showSettings, setShowSettings] = useState(false);           // Settings panel visibility
+  const [developerMessage, setDeveloperMessage] = useState('You are a helpful AI assistant.'); // System message
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null); // Track copied messages
+  const [isDarkMode, setIsDarkMode] = useState(false);               // Theme mode toggle
+  const [demoMode, setDemoMode] = useState(false);                   // Demo mode toggle
+  const [demoAvailable, setDemoAvailable] = useState(false);         // Demo mode availability
+  const [error, setError] = useState<string | null>(null);           // Error state management
+  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini'); // Selected AI model
+  const messagesEndRef = useRef<HTMLDivElement>(null);               // Reference for auto-scrolling
 
   // Pre-built system message templates for quick AI personality customization
   // Users can select from these templates or create their own custom system messages

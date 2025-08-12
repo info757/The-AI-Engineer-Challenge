@@ -1,5 +1,10 @@
+# FastAPI web framework for building APIs
 fastapi==0.104.1
+# ASGI server for running FastAPI applications
 uvicorn==0.24.0
+# OpenAI Python client for API integration
 openai==1.99.6
+# Data validation and settings management
 pydantic==2.5.0
+# File upload support for FastAPI
 python-multipart==0.0.6

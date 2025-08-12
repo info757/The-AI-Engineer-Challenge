@@ -1,6 +1,7 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
+    // Disable rule for unescaped entities to allow apostrophes in JSX
     "react/no-unescaped-entities": "off"
   }
 }
