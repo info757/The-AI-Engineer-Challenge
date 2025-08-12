@@ -1,21 +1,17 @@
 {
     "version": 2,
     "builds": [
-      // Build the Next.js frontend
       { "src": "frontend/package.json", "use": "@vercel/next" },
-      // Build the FastAPI backend as serverless functions
       { 
         "src": "api/app.py",
         "use": "@vercel/python"
       }
     ],
     "routes": [
-      // Route API requests to the backend
       { 
         "src": "/api/(.*)", 
         "dest": "api/app.py"
       },
-      // Route all other requests to the frontend
       { 
         "src": "/(.*)", 
         "dest": "frontend/$1"
