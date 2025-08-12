@@ -30,12 +30,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Input field styling for better visibility */
+/* Input field styling for better visibility - only apply in light mode */
 input[type="text"] {
-  color: #000000 !important;
   font-weight: 500 !important;
 }
 
-input[type="text"]::placeholder {
-  color: #6b7280 !important;
-}
+/* Remove the forced black color to allow dark mode styling to work */
