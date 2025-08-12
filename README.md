@@ -59,7 +59,7 @@ No setup required - just start chatting! 🎉
 ### **🤖 Advanced AI Chat**
 - **Dual-Mode Operation**: Demo mode (no API key) OR personal API key for privacy
 - **Model Selection**: Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo
-- **AI Personality Templates**: Quick-select from Code Expert, Creative Writer, Math Tutor, Business Advisor, or create custom
+- **AI Personality Templates**: Quick-select from Code Expert, Creative Writer, Math Tutor, Business Advisor, Parent, or create custom
 - **Smart Fallback**: Automatic mode detection and switching
 
 ### **🎨 Beautiful User Interface**
@@ -142,7 +142,13 @@ The app uses Tailwind CSS with custom gradients and animations. Modify colors in
 
 ### **AI Behavior**
 - **Model Selection**: Choose the best AI model for your needs (speed vs. capability vs. cost)
-- **Personality Templates**: Quick-select from pre-built AI personalities
+- **Personality Templates**: Quick-select from 6 pre-built AI personalities:
+  - **Helpful Assistant** - General purpose support
+  - **Creative Writer** - Storytelling and creative content
+  - **Code Expert** - Programming and technical help
+  - **Math Tutor** - Step-by-step problem solving
+  - **Business Advisor** - Strategic business advice
+  - **Parent** - Caring, supportive guidance and life advice
 - **Custom System Messages**: Create your own AI personality and behavior
 - **Real-time Streaming**: See AI responses as they're generated
 
@@ -174,11 +180,12 @@ This project was built for the AI Engineer Challenge. Feel free to fork and enha
 
 - 🔍 **Message Search** - Find past conversations
 - 📁 **Conversation Export** - Save chats as files
-- 🎭 **More AI Personalities** - Additional specialized templates
+- 🎭 **More AI Personalities** - Additional specialized templates (Therapist, Teacher, Coach, etc.)
 - 📊 **Usage Analytics** - Track conversation patterns
 - 🔗 **API Integration** - Connect to other services
 - 🎨 **Custom Themes** - User-defined color schemes
 - 📱 **Mobile App** - Native iOS/Android versions
+- 💬 **Conversation Memory** - AI remembers previous chat context
 
 ---
 

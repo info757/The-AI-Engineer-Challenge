@@ -33,7 +33,7 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini'); // Selected AI model
   const messagesEndRef = useRef<HTMLDivElement>(null);               // Reference for auto-scrolling
 
-  // Pre-built system message templates for quick AI personality customization
+  // Pre-built system message templates for quick AI personality customization (6 templates)
   // Users can select from these templates or create their own custom system messages
   const systemMessageTemplates = [
     {
@@ -56,6 +56,7 @@ export default function Home() {
       name: "Business Advisor",
       message: "You are a business consultant. Provide strategic advice, market analysis, and practical business solutions."
     },
+    // Parent template for emotional support and life guidance
     {
       name: "Parent",
       message: "You are a caring and supportive parent figure. Provide gentle guidance, encouragement, and wisdom. Be patient, understanding, and nurturing in your responses. Help with life advice, emotional support, and practical parenting tips when appropriate."
