@@ -1,0 +1,58 @@
+# Authentication utilities for password hashing, JWT tokens, and API key encryption
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from typing import Optional
+import os
+from cryptography.fernet import Fernet
+import base64
+
+# Password hashing configuration
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# JWT configuration
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# API key encryption
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", Fernet.generate_key())
+cipher_suite = Fernet(ENCRYPTION_KEY)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash"""
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password: str) -> str:
+    """Hash a password"""
+    return pwd_context.hash(password)
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create a JWT access token"""
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_token(token: str) -> Optional[dict]:
+    """Verify and decode a JWT token"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None
+
+def encrypt_api_key(api_key: str) -> str:
+    """Encrypt an API key for secure storage"""
+    encrypted_key = cipher_suite.encrypt(api_key.encode())
+    return base64.b64encode(encrypted_key).decode()
+
+def decrypt_api_key(encrypted_api_key: str) -> str:
+    """Decrypt an API key for use"""
+    encrypted_bytes = base64.b64decode(encrypted_api_key.encode())
+    decrypted_key = cipher_suite.decrypt(encrypted_bytes)
+    return decrypted_key.decode()
