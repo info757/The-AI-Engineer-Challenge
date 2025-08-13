@@ -2,27 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements first for better caching
+# Copy requirements and install dependencies
 COPY api/requirements.txt .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
-COPY api/ .
+# Copy the simple app
+COPY api/simple_app.py .
 
-# Make debug script executable
-RUN chmod +x startup_debug.py
-
-# Expose port (will be overridden by Railway's PORT env var)
+# Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:$PORT/api/health || exit 1
-
-# Run simple app first to test basic deployment
-CMD ["sh", "-c", "python -m uvicorn simple_app:app --host 0.0.0.0 --port $PORT"]
+# Run the simple app
+CMD ["python", "-m", "uvicorn", "simple_app:app", "--host", "0.0.0.0", "--port", "8000"]
