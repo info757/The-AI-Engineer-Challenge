@@ -6,11 +6,11 @@ WORKDIR /app
 COPY api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the simple app
-COPY api/simple_app.py .
+# Copy the entire api directory
+COPY api/ .
 
 # Expose port
 EXPOSE 8000
 
-# Run the simple app
-CMD ["python", "-m", "uvicorn", "simple_app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the full app
+CMD ["python", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
