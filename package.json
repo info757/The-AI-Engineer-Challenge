@@ -1,0 +1,13 @@
+{
+  "name": "ai-engineer-challenge",
+  "version": "1.0.0",
+  "description": "AI Engineer Challenge - Full Stack AI Chat Application",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "start": "cd frontend && npm start"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
