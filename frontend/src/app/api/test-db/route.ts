@@ -1,11 +1,34 @@
 import { NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { createClient } from '@supabase/supabase-js';
 
 // Database connection test function
 async function testConnection() {
   try {
-    const result = await sql`SELECT NOW()`;
-    console.log('Database connection successful:', result.rows[0]);
+    // Check if environment variables are available
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+      console.error('Supabase environment variables not found');
+      return false;
+    }
+
+    // Create Supabase client
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY
+    );
+
+    // Test connection with a simple query
+    const { error } = await supabase.from('_test').select('*').limit(1);
+    
+    if (error) {
+      // If table doesn't exist, try a simple query
+      const { error: testError } = await supabase.rpc('version');
+      if (testError) {
+        console.error('Database connection failed:', testError);
+        return false;
+      }
+    }
+    
+    console.log('Database connection successful');
     return true;
   } catch (error) {
     console.error('Database connection failed:', error);
@@ -20,7 +43,7 @@ export async function GET() {
     if (isConnected) {
       return NextResponse.json({ 
         status: 'success', 
-        message: 'Database connection working',
+        message: 'Supabase database connection working',
         timestamp: new Date().toISOString()
       });
     } else {
