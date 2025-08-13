@@ -71,14 +71,18 @@ export default function Home() {
   // Authentication functions
   const login = async (email: string, password: string) => {
     try {
+      console.log('Starting login for:', email);
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('Login response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('Login successful, data:', data);
         setAuthToken(data.token);
         setIsAuthenticated(true);
         setShowAuth(false);
@@ -86,29 +90,38 @@ export default function Home() {
         await fetchUserAPIKeys(data.token);
       } else {
         const errorData = await response.json();
+        console.error('Login failed:', errorData);
         setError(errorData.error || 'Login failed');
       }
     } catch (_error) {
+      console.error('Login error:', _error);
       setError('Login failed. Please try again.');
     }
   };
 
   const register = async (username: string, email: string, password: string) => {
     try {
+      console.log('Starting registration for:', email);
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
       });
 
+      console.log('Registration response status:', response.status);
+      
       if (response.ok) {
+        const data = await response.json();
+        console.log('Registration successful, data:', data);
         // Auto-login after successful registration
         await login(email, password);
       } else {
         const errorData = await response.json();
+        console.error('Registration failed:', errorData);
         setError(errorData.error || 'Registration failed');
       }
     } catch (_error) {
+      console.error('Registration error:', _error);
       setError('Registration failed. Please try again.');
     }
   };

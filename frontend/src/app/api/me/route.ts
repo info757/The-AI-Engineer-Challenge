@@ -88,11 +88,9 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email
-      }
+      id: user.id,
+      username: user.username,
+      email: user.email
     });
 
   } catch (error) {
