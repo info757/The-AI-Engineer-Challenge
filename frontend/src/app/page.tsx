@@ -3,7 +3,7 @@
 // React hooks for state management and side effects
 import { useState, useRef, useEffect } from 'react';
 // Lucide React icons for UI elements
-import { Send, Bot, User, Loader2, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
+import { Send, Bot, User, Settings, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
 // API configuration
 import { API_ENDPOINTS } from '../config/api';
 
@@ -17,6 +17,20 @@ interface Message {
     thumbsUp: boolean;
     thumbsDown: boolean;
   };
+}
+
+// TypeScript interfaces for user and API key data
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
+
+interface APIKey {
+  id: number;
+  key_name: string;
+  is_active: boolean;
+  last_used?: string;
 }
 
 export default function Home() {
@@ -35,11 +49,11 @@ export default function Home() {
   
   // Authentication state management
   const [isAuthenticated, setIsAuthenticated] = useState(false);     // User authentication status
-  const [currentUser, setCurrentUser] = useState<any>(null);         // Current user data
+  const [_currentUser, setCurrentUser] = useState<User | null>(null); // Current user data
   const [authToken, setAuthToken] = useState<string | null>(null);   // JWT token
   const [showAuth, setShowAuth] = useState(false);                   // Auth modal visibility
   const [isLogin, setIsLogin] = useState(true);                      // Login vs Register mode
-  const [userAPIKeys, setUserAPIKeys] = useState<any[]>([]);         // User's stored API keys
+  const [userAPIKeys, setUserAPIKeys] = useState<APIKey[]>([]);      // User's stored API keys
   const [selectedAPIKeyId, setSelectedAPIKeyId] = useState<number | null>(null); // Selected API key
   const messagesEndRef = useRef<HTMLDivElement>(null);               // Reference for auto-scrolling
 
@@ -97,7 +111,7 @@ export default function Home() {
         const errorData = await response.json();
         setError(errorData.detail || 'Login failed');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Login failed. Please try again.');
     }
   };
@@ -117,7 +131,7 @@ export default function Home() {
         const errorData = await response.json();
         setError(errorData.detail || 'Registration failed');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Registration failed. Please try again.');
     }
   };
@@ -180,7 +194,7 @@ export default function Home() {
         const errorData = await response.json();
         setError(errorData.detail || 'Failed to add API key');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Failed to add API key. Please try again.');
     }
   };
@@ -261,7 +275,7 @@ export default function Home() {
     try {
       // Choose the appropriate endpoint based on demo mode
       const endpoint = demoMode ? API_ENDPOINTS.chatDemo : API_ENDPOINTS.chat;
-      const headers: any = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
       
