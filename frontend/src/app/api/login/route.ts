@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs'; // Fixed import for Vercel compatibility
+import bcrypt from 'bcryptjs'; // Fixed import for Vercel compatibility - rebuild forced
 import jwt from 'jsonwebtoken';
 
-// Simple in-memory storage for demo purposes
+// Simple in-memory storage for demo purposes - Vercel rebuild
 const users: User[] = [
   {
     id: '1',
