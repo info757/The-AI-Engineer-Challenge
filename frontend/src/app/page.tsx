@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User } from 'lucide-react';
+import { Send, Copy, ThumbsUp, ThumbsDown, Settings } from 'lucide-react';
 
 interface Message {
   id: string;
