@@ -40,8 +40,16 @@ def get_encryption_key():
     
     return encryption_key
 
+# Initialize encryption key and cipher suite
 ENCRYPTION_KEY = get_encryption_key()
-cipher_suite = Fernet(ENCRYPTION_KEY)
+cipher_suite = None
+
+def get_cipher_suite():
+    """Get the cipher suite, initializing it if needed"""
+    global cipher_suite
+    if cipher_suite is None:
+        cipher_suite = Fernet(ENCRYPTION_KEY)
+    return cipher_suite
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash"""
@@ -73,7 +81,8 @@ def verify_token(token: str) -> Optional[dict]:
 def encrypt_api_key(api_key: str) -> str:
     """Encrypt an API key for secure storage"""
     try:
-        encrypted_key = cipher_suite.encrypt(api_key.encode())
+        cipher = get_cipher_suite()
+        encrypted_key = cipher.encrypt(api_key.encode())
         return base64.b64encode(encrypted_key).decode()
     except Exception as e:
         print(f"Error encrypting API key: {e}")
@@ -82,8 +91,9 @@ def encrypt_api_key(api_key: str) -> str:
 def decrypt_api_key(encrypted_api_key: str) -> str:
     """Decrypt an API key for use"""
     try:
+        cipher = get_cipher_suite()
         encrypted_bytes = base64.b64decode(encrypted_api_key.encode())
-        decrypted_key = cipher_suite.decrypt(encrypted_bytes)
+        decrypted_key = cipher.decrypt(encrypted_bytes)
         return decrypted_key.decode()
     except Exception as e:
         print(f"Error decrypting API key: {e}")
