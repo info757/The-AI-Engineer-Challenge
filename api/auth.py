@@ -22,16 +22,21 @@ def get_encryption_key():
     if not encryption_key:
         # Generate a new key and log a warning
         print("WARNING: ENCRYPTION_KEY not set. Generating new key. Existing encrypted data may not be accessible.")
-        return Fernet.generate_key()
+        new_key = Fernet.generate_key()
+        print(f"Generated new encryption key: {new_key.decode()}")
+        return new_key
     
-    # If the key is a string, convert it to bytes
+    # If the key is a string, try to use it
     if isinstance(encryption_key, str):
-        # If it's base64 encoded, decode it
         try:
+            # Try to decode it as base64
             return base64.b64decode(encryption_key.encode())
         except:
-            # If not base64, use it as-is
-            return encryption_key.encode()
+            # If not valid base64, generate a new key
+            print("WARNING: Invalid ENCRYPTION_KEY format. Generating new key.")
+            new_key = Fernet.generate_key()
+            print(f"Generated new encryption key: {new_key.decode()}")
+            return new_key
     
     return encryption_key
 
