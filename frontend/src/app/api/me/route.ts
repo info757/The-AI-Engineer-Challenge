@@ -1,8 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { getUserById } from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+// Create Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
+
+// Types
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  password_hash: string;
+  created_at: string;
+  updated_at: string;
+}
+
+async function getUserById(id: string): Promise<User | null> {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error getting user by id:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting user by id:', error);
+    return null;
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {

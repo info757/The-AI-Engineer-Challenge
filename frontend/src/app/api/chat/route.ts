@@ -2,11 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { getAPIKeyById } from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 const DEMO_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+// Create Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
+
+// Types
+interface APIKey {
+  id: string;
+  user_id: string;
+  name: string;
+  encrypted_key: string;
+  created_at: string;
+  updated_at: string;
+}
 
 // Decryption function
 function decrypt(encryptedText: string): string {
@@ -30,6 +46,26 @@ function getUserIdFromToken(request: NextRequest): string | null {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
     return decoded.userId;
   } catch (error) {
+    return null;
+  }
+}
+
+async function getAPIKeyById(id: string): Promise<APIKey | null> {
+  try {
+    const { data, error } = await supabase
+      .from('api_keys')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error getting API key by id:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting API key by id:', error);
     return null;
   }
 }

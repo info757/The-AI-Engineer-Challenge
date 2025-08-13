@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { 
-  createAPIKey, 
-  getUserAPIKeys, 
-  deleteAPIKey, 
-  getAPIKeyById 
-} from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
+
+// Create Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
+
+// Types
+interface APIKey {
+  id: string;
+  user_id: string;
+  name: string;
+  encrypted_key: string;
+  created_at: string;
+  updated_at: string;
+}
 
 // Encryption/Decryption functions
 function encrypt(text: string): string {
@@ -41,6 +52,90 @@ function getUserIdFromToken(request: NextRequest): string | null {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
     return decoded.userId;
   } catch (error) {
+    return null;
+  }
+}
+
+// API Key operations
+async function createAPIKey(userId: string, name: string, encryptedKey: string): Promise<APIKey | null> {
+  try {
+    const { data, error } = await supabase
+      .from('api_keys')
+      .insert({
+        user_id: userId,
+        name,
+        encrypted_key: encryptedKey
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating API key:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error creating API key:', error);
+    return null;
+  }
+}
+
+async function getUserAPIKeys(userId: string): Promise<APIKey[]> {
+  try {
+    const { data, error } = await supabase
+      .from('api_keys')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error getting user API keys:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error getting user API keys:', error);
+    return [];
+  }
+}
+
+async function deleteAPIKey(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('api_keys')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting API key:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting API key:', error);
+    return false;
+  }
+}
+
+async function getAPIKeyById(id: string): Promise<APIKey | null> {
+  try {
+    const { data, error } = await supabase
+      .from('api_keys')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error getting API key by id:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting API key by id:', error);
     return null;
   }
 }

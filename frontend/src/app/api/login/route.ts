@@ -1,9 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { getUserByEmail } from '../../../lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+// Create Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
+
+// Types
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  password_hash: string;
+  created_at: string;
+  updated_at: string;
+}
+
+async function getUserByEmail(email: string): Promise<User | null> {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error) {
+      console.error('Error getting user by email:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting user by email:', error);
+    return null;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
