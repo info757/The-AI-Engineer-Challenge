@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Database connection test function - Vercel redeploy trigger
+// Database connection test function - Vercel redeploy trigger - 3:15 PM
 async function testConnection() {
   try {
     // Check if environment variables are available
