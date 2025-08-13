@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Create Supabase client conditionally
-let supabase: any = null;
+let supabase: SupabaseClient | null = null;
 if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
   supabase = createClient(
     process.env.SUPABASE_URL,

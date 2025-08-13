@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 
 // Create Supabase client conditionally
-let supabase: any = null;
+let supabase: SupabaseClient | null = null;
 if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
   supabase = createClient(
     process.env.SUPABASE_URL,
@@ -25,22 +25,13 @@ interface APIKey {
   updated_at: string;
 }
 
-// Encryption/Decryption functions
+// Encryption function
 function encrypt(text: string): string {
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return iv.toString('hex') + ':' + encrypted;
-}
-
-function decrypt(encryptedText: string): string {
-  const [ivHex, encrypted] = encryptedText.split(':');
-  const iv = Buffer.from(ivHex, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
 }
 
 // Helper function to get user ID from token
@@ -54,7 +45,7 @@ function getUserIdFromToken(request: NextRequest): string | null {
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
     return decoded.userId;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

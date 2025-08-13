@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 const DEMO_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // Create Supabase client conditionally
-let supabase: any = null;
+let supabase: SupabaseClient | null = null;
 if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
   supabase = createClient(
     process.env.SUPABASE_URL,
@@ -48,7 +48,7 @@ function getUserIdFromToken(request: NextRequest): string | null {
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
     return decoded.userId;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
