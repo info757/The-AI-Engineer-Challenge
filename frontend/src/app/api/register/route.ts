@@ -1,109 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs'; // Fixed import for Vercel compatibility
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { createUser, getUserByEmail } from '../../../lib/supabase';
 
-// Load users from environment variables for persistence
-const loadUsers = (): User[] => {
-  const demoUsers = process.env.DEMO_USERS;
-  if (demoUsers) {
-    try {
-      return JSON.parse(demoUsers);
-    } catch (error) {
-      console.error('Failed to parse DEMO_USERS:', error);
-    }
-  }
-  
-  // Fallback to default demo user
-  return [
-    {
-      id: '1',
-      username: 'demo',
-      email: 'demo@example.com',
-      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iK8O', // password: demo123
-      createdAt: '2024-01-01T00:00:00.000Z'
-    }
-  ];
-};
-
-// TypeScript interfaces for better type safety
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  password: string;
-  createdAt: string;
-}
-
-interface UserResponse {
-  id: string;
-  username: string;
-  email: string;
-  access_token: string;
-  token_type: string;
-}
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { username, email, password } = body;
+    const { username, email, password } = await request.json();
 
+    // Validate input
     if (!username || !email || !password) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Username, email, and password are required' },
         { status: 400 }
       );
     }
 
-    // Load existing users
-    const users = loadUsers();
-
     // Check if user already exists
-    const existingUser = users.find(u => u.username === username || u.email === email);
+    const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Username or email already exists' },
-        { status: 400 }
+        { error: 'User with this email already exists' },
+        { status: 409 }
       );
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Create user
-    const user: User = {
-      id: Date.now().toString(),
-      username,
-      email,
-      password: hashedPassword,
-      createdAt: new Date().toISOString()
-    };
+    // Create user in Supabase
+    const user = await createUser(username, email, passwordHash);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Failed to create user' },
+        { status: 500 }
+      );
+    }
 
-    // Add to users array (in a real app, this would be saved to a database)
-    users.push(user);
-
-    // Create JWT token
+    // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, username: user.username },
+      { userId: user.id, email: user.email },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '7d' }
     );
 
-    const response: UserResponse = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      access_token: token,
-      token_type: 'bearer'
-    };
-
-    return NextResponse.json(response);
+    return NextResponse.json({
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      }
+    });
 
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Registration failed' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

@@ -1,38 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { 
+  createAPIKey, 
+  getUserAPIKeys, 
+  deleteAPIKey, 
+  getAPIKeyById 
+} from '../../../lib/supabase';
 
-// Simple in-memory storage for demo purposes
-const apiKeys: APIKey[] = [];
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 
-// TypeScript interfaces for better type safety
-interface APIKey {
-  id: string;
-  userId: string;
-  encrypted_api_key: string;
-  key_name: string;
-  is_active: boolean;
-  created_at: string;
-  last_used?: string;
-}
-
-interface JwtPayload {
-  userId: string;
-  username: string;
-}
-
-interface APIKeyResponse {
-  id: string;
-  key_name: string;
-  is_active: boolean;
-  created_at: string;
-  last_used?: string;
-}
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-encryption-key-32-chars-long!';
-
-// Encryption helper function
+// Encryption/Decryption functions
 function encrypt(text: string): string {
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
@@ -41,102 +20,108 @@ function encrypt(text: string): string {
   return iv.toString('hex') + ':' + encrypted;
 }
 
-// Helper function to get user from token
-function getUserFromToken(request: NextRequest): JwtPayload | null {
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return null;
-  }
+function decrypt(encryptedText: string): string {
+  const [ivHex, encrypted] = encryptedText.split(':');
+  const iv = Buffer.from(ivHex, 'hex');
+  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
 
-  const token = authHeader.substring(7);
+// Helper function to get user ID from token
+function getUserIdFromToken(request: NextRequest): string | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    return decoded;
-  } catch {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+    return decoded.userId;
+  } catch (error) {
     return null;
   }
 }
 
-// GET - List user's API keys
+// GET - Get user's API keys
 export async function GET(request: NextRequest) {
   try {
-    const user = getUserFromToken(request);
-    if (!user) {
+    const userId = getUserIdFromToken(request);
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const userKeys = apiKeys.filter(k => k.userId === user.userId);
-    const response: APIKeyResponse[] = userKeys.map(key => ({
+    const apiKeys = await getUserAPIKeys(userId);
+    
+    // Return API keys without the encrypted key for security
+    const safeApiKeys = apiKeys.map(key => ({
       id: key.id,
-      key_name: key.key_name,
-      is_active: key.is_active,
+      name: key.name,
       created_at: key.created_at,
-      last_used: key.last_used
+      updated_at: key.updated_at
     }));
 
-    return NextResponse.json(response);
+    return NextResponse.json({ apiKeys: safeApiKeys });
 
   } catch (error) {
     console.error('Get API keys error:', error);
     return NextResponse.json(
-      { error: 'Failed to get API keys' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
 }
 
-// POST - Add new API key
+// POST - Create new API key
 export async function POST(request: NextRequest) {
   try {
-    const user = getUserFromToken(request);
-    if (!user) {
+    const userId = getUserIdFromToken(request);
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const body = await request.json();
-    const { api_key, key_name = 'Default' } = body;
+    const { name, apiKey } = await request.json();
 
-    if (!api_key) {
+    if (!name || !apiKey) {
       return NextResponse.json(
-        { error: 'API key is required' },
+        { error: 'Name and API key are required' },
         { status: 400 }
       );
     }
 
     // Encrypt the API key
-    const encryptedApiKey = encrypt(api_key);
+    const encryptedKey = encrypt(apiKey);
 
-    // Create API key record
-    const newKey: APIKey = {
-      id: Date.now().toString(),
-      userId: user.userId,
-      encrypted_api_key: encryptedApiKey,
-      key_name,
-      is_active: true,
-      created_at: new Date().toISOString()
-    };
+    // Save to Supabase
+    const savedKey = await createAPIKey(userId, name, encryptedKey);
+    if (!savedKey) {
+      return NextResponse.json(
+        { error: 'Failed to save API key' },
+        { status: 500 }
+      );
+    }
 
-    apiKeys.push(newKey);
-
-    const response: APIKeyResponse = {
-      id: newKey.id,
-      key_name: newKey.key_name,
-      is_active: newKey.is_active,
-      created_at: newKey.created_at
-    };
-
-    return NextResponse.json(response);
+    return NextResponse.json({
+      message: 'API key created successfully',
+      apiKey: {
+        id: savedKey.id,
+        name: savedKey.name,
+        created_at: savedKey.created_at
+      }
+    });
 
   } catch (error) {
-    console.error('Add API key error:', error);
+    console.error('Create API key error:', error);
     return NextResponse.json(
-      { error: 'Failed to add API key' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -145,10 +130,10 @@ export async function POST(request: NextRequest) {
 // DELETE - Delete API key
 export async function DELETE(request: NextRequest) {
   try {
-    const user = getUserFromToken(request);
-    if (!user) {
+    const userId = getUserIdFromToken(request);
+    if (!userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
@@ -163,24 +148,32 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Find the key and verify ownership
-    const keyIndex = apiKeys.findIndex(k => k.id === keyId && k.userId === user.userId);
-    if (keyIndex === -1) {
+    // Verify the API key belongs to the user
+    const apiKey = await getAPIKeyById(keyId);
+    if (!apiKey || apiKey.user_id !== userId) {
       return NextResponse.json(
         { error: 'API key not found' },
         { status: 404 }
       );
     }
 
-    // Delete the key
-    apiKeys.splice(keyIndex, 1);
+    // Delete the API key
+    const success = await deleteAPIKey(keyId);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Failed to delete API key' },
+        { status: 500 }
+      );
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      message: 'API key deleted successfully'
+    });
 
   } catch (error) {
     console.error('Delete API key error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete API key' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
