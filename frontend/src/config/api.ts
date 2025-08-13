@@ -12,3 +12,14 @@ export const API_ENDPOINTS = {
   apiKeys: `${API_BASE_URL}/api/api-keys`,
   health: `${API_BASE_URL}/api/health`,
 } as const;
+
+// Check if we're in production and backend is not available
+export const isBackendAvailable = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(API_ENDPOINTS.health);
+    return response.ok;
+  } catch (error) {
+    console.warn('Backend not available:', error);
+    return false;
+  }
+};
