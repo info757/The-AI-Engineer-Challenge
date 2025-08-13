@@ -6,11 +6,14 @@ import { createClient } from '@supabase/supabase-js';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+// Create Supabase client conditionally
+let supabase: any = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+}
 
 // Types
 interface APIKey {
@@ -58,6 +61,11 @@ function getUserIdFromToken(request: NextRequest): string | null {
 
 // API Key operations
 async function createAPIKey(userId: string, name: string, encryptedKey: string): Promise<APIKey | null> {
+  if (!supabase) {
+    console.error('Supabase client not initialized - missing environment variables');
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('api_keys')
@@ -82,6 +90,11 @@ async function createAPIKey(userId: string, name: string, encryptedKey: string):
 }
 
 async function getUserAPIKeys(userId: string): Promise<APIKey[]> {
+  if (!supabase) {
+    console.error('Supabase client not initialized - missing environment variables');
+    return [];
+  }
+
   try {
     const { data, error } = await supabase
       .from('api_keys')
@@ -102,6 +115,11 @@ async function getUserAPIKeys(userId: string): Promise<APIKey[]> {
 }
 
 async function deleteAPIKey(id: string): Promise<boolean> {
+  if (!supabase) {
+    console.error('Supabase client not initialized - missing environment variables');
+    return false;
+  }
+
   try {
     const { error } = await supabase
       .from('api_keys')
@@ -121,6 +139,11 @@ async function deleteAPIKey(id: string): Promise<boolean> {
 }
 
 async function getAPIKeyById(id: string): Promise<APIKey | null> {
+  if (!supabase) {
+    console.error('Supabase client not initialized - missing environment variables');
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('api_keys')
@@ -148,6 +171,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Check if Supabase is available
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database not available - missing environment variables' },
+        { status: 500 }
       );
     }
 
@@ -180,6 +211,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Check if Supabase is available
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database not available - missing environment variables' },
+        { status: 500 }
       );
     }
 
@@ -230,6 +269,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      );
+    }
+
+    // Check if Supabase is available
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database not available - missing environment variables' },
+        { status: 500 }
       );
     }
 

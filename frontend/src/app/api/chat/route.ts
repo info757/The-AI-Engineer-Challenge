@@ -8,11 +8,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 const DEMO_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+// Create Supabase client conditionally
+let supabase: any = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+}
 
 // Types
 interface APIKey {
@@ -51,6 +54,11 @@ function getUserIdFromToken(request: NextRequest): string | null {
 }
 
 async function getAPIKeyById(id: string): Promise<APIKey | null> {
+  if (!supabase) {
+    console.error('Supabase client not initialized - missing environment variables');
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('api_keys')
@@ -91,6 +99,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { error: 'Unauthorized' },
           { status: 401 }
+        );
+      }
+
+      // Check if Supabase is available
+      if (!supabase) {
+        return NextResponse.json(
+          { error: 'Database not available - missing environment variables' },
+          { status: 500 }
         );
       }
 

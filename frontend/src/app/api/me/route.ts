@@ -4,11 +4,14 @@ import { createClient } from '@supabase/supabase-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
+// Create Supabase client conditionally
+let supabase: any = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+}
 
 // Types
 interface User {
@@ -21,6 +24,11 @@ interface User {
 }
 
 async function getUserById(id: string): Promise<User | null> {
+  if (!supabase) {
+    console.error('Supabase client not initialized - missing environment variables');
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from('users')
@@ -59,6 +67,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
+      );
+    }
+
+    // Check if Supabase is available
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Database not available - missing environment variables' },
+        { status: 500 }
       );
     }
 
