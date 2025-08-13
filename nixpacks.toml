@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python38", "python38Packages.pip"]
+
+[phases.install]
+cmds = ["cd api && pip install -r requirements.txt"]
+
+[start]
+cmd = "cd api && python -m uvicorn app:app --host 0.0.0.0 --port $PORT"
