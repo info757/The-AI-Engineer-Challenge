@@ -45,8 +45,11 @@ async def startup_event():
         print(f"ENCRYPTION_KEY configured: {'Yes' if os.getenv('ENCRYPTION_KEY') else 'No'}")
         
         # Create database tables
-        create_tables()
-        print("Database tables created successfully")
+        try:
+            create_tables()
+            print("Database tables created successfully")
+        except Exception as db_error:
+            print(f"Database error (non-critical): {db_error}")
         
         print("Startup completed successfully!")
     except Exception as e:
@@ -68,68 +71,84 @@ app.add_middleware(
 # Helper function to get current user from JWT token
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     """Get current user from JWT token"""
-    token = credentials.credentials
-    payload = verify_token(token)
-    if payload is None:
+    try:
+        token = credentials.credentials
+        payload = verify_token(token)
+        if payload is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        user = db.query(User).filter(User.username == username).first()
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user
+    except Exception as e:
+        print(f"Error in get_current_user: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="Authentication failed",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    username: str = payload.get("sub")
-    if username is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    user = db.query(User).filter(User.username == username).first()
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
 
 # User authentication endpoints
 @app.post("/api/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
-    # Check if user already exists
-    db_user = db.query(User).filter(User.username == user.username).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Create new user
-    hashed_password = get_password_hash(user.password)
-    db_user = User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hashed_password
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    try:
+        # Check if user already exists
+        db_user = db.query(User).filter(User.username == user.username).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Username already registered")
+        
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if db_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Create new user
+        hashed_password = get_password_hash(user.password)
+        db_user = User(
+            username=user.username,
+            email=user.email,
+            hashed_password=hashed_password
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except Exception as e:
+        print(f"Error in register: {e}")
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 @app.post("/api/login", response_model=Token)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Login user and return JWT token"""
-    user = db.query(User).filter(User.username == user_credentials.username).first()
-    if not user or not verify_password(user_credentials.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    access_token = create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    try:
+        user = db.query(User).filter(User.username == user_credentials.username).first()
+        if not user or not verify_password(user_credentials.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect username or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        access_token = create_access_token(data={"sub": user.username})
+        return {"access_token": access_token, "token_type": "bearer"}
+    except Exception as e:
+        print(f"Error in login: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
 
 @app.get("/api/me", response_model=UserResponse)
 def get_current_user_info(current_user: User = Depends(get_current_user)):
@@ -140,36 +159,48 @@ def get_current_user_info(current_user: User = Depends(get_current_user)):
 @app.post("/api/api-keys", response_model=APIKeyResponse)
 def create_api_key(api_key_data: APIKeyCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Create a new API key for the current user"""
-    encrypted_key = encrypt_api_key(api_key_data.api_key)
-    db_api_key = UserAPIKey(
-        user_id=current_user.id,
-        encrypted_api_key=encrypted_key,
-        key_name=api_key_data.key_name
-    )
-    db.add(db_api_key)
-    db.commit()
-    db.refresh(db_api_key)
-    return db_api_key
+    try:
+        encrypted_key = encrypt_api_key(api_key_data.api_key)
+        db_api_key = UserAPIKey(
+            user_id=current_user.id,
+            encrypted_api_key=encrypted_key,
+            key_name=api_key_data.key_name
+        )
+        db.add(db_api_key)
+        db.commit()
+        db.refresh(db_api_key)
+        return db_api_key
+    except Exception as e:
+        print(f"Error in create_api_key: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create API key")
 
 @app.get("/api/api-keys", response_model=List[APIKeyResponse])
 def get_user_api_keys(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get all API keys for the current user"""
-    api_keys = db.query(UserAPIKey).filter(UserAPIKey.user_id == current_user.id).all()
-    return api_keys
+    try:
+        api_keys = db.query(UserAPIKey).filter(UserAPIKey.user_id == current_user.id).all()
+        return api_keys
+    except Exception as e:
+        print(f"Error in get_user_api_keys: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get API keys")
 
 @app.delete("/api/api-keys/{key_id}")
 def delete_api_key(key_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Delete an API key"""
-    api_key = db.query(UserAPIKey).filter(
-        UserAPIKey.id == key_id,
-        UserAPIKey.user_id == current_user.id
-    ).first()
-    if not api_key:
-        raise HTTPException(status_code=404, detail="API key not found")
-    
-    db.delete(api_key)
-    db.commit()
-    return {"message": "API key deleted successfully"}
+    """Delete an API key for the current user"""
+    try:
+        api_key = db.query(UserAPIKey).filter(
+            UserAPIKey.id == key_id,
+            UserAPIKey.user_id == current_user.id
+        ).first()
+        if not api_key:
+            raise HTTPException(status_code=404, detail="API key not found")
+        
+        db.delete(api_key)
+        db.commit()
+        return {"message": "API key deleted successfully"}
+    except Exception as e:
+        print(f"Error in delete_api_key: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete API key")
 
 # Define the main chat endpoint that handles POST requests
 @app.post("/api/chat")
@@ -309,7 +340,7 @@ async def chat_demo(request: ChatRequest) -> StreamingResponse:
     
     except Exception as e:
         # Handle any errors that occur during processing
-        print(f"Error in demo chat endpoint: {str(e)}")
+        print(f"Error in chat_demo endpoint: {str(e)}")
         print(f"Error type: {type(e)}")
         import traceback
         print(f"Full traceback: {traceback.format_exc()}")
