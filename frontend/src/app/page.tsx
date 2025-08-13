@@ -3,7 +3,7 @@
 // React hooks for state management and side effects
 import { useState, useRef, useEffect } from 'react';
 // Lucide React icons for UI elements
-import { Send, Bot, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, Settings } from 'lucide-react';
+import { Send, Bot, Copy, Check, Moon, Sun, ThumbsUp, ThumbsDown, Settings, User, LogOut } from 'lucide-react';
 // API configuration
 import { API_ENDPOINTS } from '../config/api';
 
@@ -17,6 +17,20 @@ interface Message {
     thumbsUp: boolean;
     thumbsDown: boolean;
   };
+}
+
+// TypeScript interfaces for user and API key data
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
+interface APIKey {
+  id: string;
+  key_name: string;
+  is_active: boolean;
+  last_used?: string;
 }
 
 export default function Home() {
@@ -33,6 +47,15 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);           // Error state management
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini'); // Selected AI model
   const messagesEndRef = useRef<HTMLDivElement>(null);               // Reference for auto-scrolling
+
+  // Authentication state management
+  const [isAuthenticated, setIsAuthenticated] = useState(false);     // User authentication status
+  const [currentUser, setCurrentUser] = useState<User | null>(null); // Current user data
+  const [authToken, setAuthToken] = useState<string | null>(null);   // JWT token
+  const [showAuth, setShowAuth] = useState(false);                   // Auth modal visibility
+  const [isLogin, setIsLogin] = useState(true);                      // Login vs Register mode
+  const [userAPIKeys, setUserAPIKeys] = useState<APIKey[]>([]);      // User's stored API keys
+  const [selectedAPIKeyId, setSelectedAPIKeyId] = useState<string | null>(null); // Selected API key
 
   // Pre-built system message templates for quick AI personality customization
   const systemMessageTemplates = [
@@ -88,9 +111,124 @@ export default function Home() {
     scrollToBottom();
   }, [messages]);
 
+  // Authentication functions
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.login, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAuthToken(data.access_token);
+        setIsAuthenticated(true);
+        setShowAuth(false);
+        await fetchUserData(data.access_token);
+        await fetchUserAPIKeys(data.access_token);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Login failed');
+      }
+    } catch (_error) {
+      setError('Login failed. Please try again.');
+    }
+  };
+
+  const register = async (username: string, email: string, password: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.register, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      if (response.ok) {
+        // Auto-login after successful registration
+        await login(username, password);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Registration failed');
+      }
+    } catch (_error) {
+      setError('Registration failed. Please try again.');
+    }
+  };
+
+  const logout = () => {
+    setAuthToken(null);
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setUserAPIKeys([]);
+    setSelectedAPIKeyId(null);
+    setMessages([]);
+    setDemoMode(true); // Switch back to demo mode
+  };
+
+  const fetchUserData = async (token: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.me, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setCurrentUser(userData);
+      }
+    } catch (_error) {
+      console.error('Failed to fetch user data:', _error);
+    }
+  };
+
+  const fetchUserAPIKeys = async (token: string) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.apiKeys, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const keys = await response.json();
+        setUserAPIKeys(keys);
+        if (keys.length > 0) {
+          setSelectedAPIKeyId(keys[0].id);
+        }
+      }
+    } catch (_error) {
+      console.error('Failed to fetch API keys:', _error);
+    }
+  };
+
+  const addAPIKey = async (apiKey: string, keyName: string = 'Default') => {
+    try {
+      const response = await fetch(API_ENDPOINTS.apiKeys, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ api_key: apiKey, key_name: keyName }),
+      });
+
+      if (response.ok) {
+        await fetchUserAPIKeys(authToken!);
+        setError(null);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to add API key');
+      }
+    } catch (_error) {
+      setError('Failed to add API key. Please try again.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    // Check if we have either demo mode or authentication with API keys
+    if (!demoMode && !isAuthenticated) {
+      setError('Please log in or use demo mode to chat');
+      return;
+    }
 
     // Clear any previous errors
     setError(null);
@@ -107,16 +245,24 @@ export default function Home() {
     setIsLoading(true);
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authorization header for authenticated requests
+      if (!demoMode && authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch(API_ENDPOINTS.chat, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           developer_message: developerMessage,
           user_message: input,
           model: selectedModel,
-          use_demo_mode: true,
+          use_demo_mode: demoMode,
+          api_key_id: demoMode ? undefined : selectedAPIKeyId,
         }),
       });
 
@@ -207,6 +353,36 @@ export default function Home() {
           </div>
           
           <div className="flex items-center space-x-2">
+            {/* Auth button */}
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-2">
+                <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {currentUser?.username}
+                </span>
+                <button
+                  onClick={logout}
+                  className={`p-2 rounded-lg transition-colors duration-200 ${
+                    isDarkMode 
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <LogOut className="h-5 w-5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className={`p-2 rounded-lg transition-colors duration-200 ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <User className="h-5 w-5" />
+              </button>
+            )}
+            
             {/* Settings button */}
             <button
               onClick={() => setShowSettings(!showSettings)}
@@ -265,6 +441,74 @@ export default function Home() {
                     }`}
                   />
                 </button>
+              </div>
+            )}
+            
+            {/* API Key Management - only show if authenticated and not in demo mode */}
+            {!demoMode && isAuthenticated && (
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Your API Keys
+                </label>
+                {userAPIKeys.length > 0 ? (
+                  <select
+                    value={selectedAPIKeyId || ''}
+                    onChange={(e) => setSelectedAPIKeyId(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white' 
+                        : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  >
+                    {userAPIKeys.map((key) => (
+                      <option key={key.id} value={key.id}>
+                        {key.key_name} (Last used: {key.last_used ? new Date(key.last_used).toLocaleDateString() : 'Never'})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    No API keys added yet. Add one below.
+                  </p>
+                )}
+                
+                {/* Add new API key form */}
+                <div className="mt-3 space-y-2">
+                  <input
+                    type="password"
+                    placeholder="sk-... (new API key)"
+                    id="new-api-key"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Key name (optional)"
+                    id="key-name"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                  />
+                  <button
+                    onClick={() => {
+                      const newKey = (document.getElementById('new-api-key') as HTMLInputElement)?.value;
+                      const keyName = (document.getElementById('key-name') as HTMLInputElement)?.value || 'Default';
+                      if (newKey) {
+                        addAPIKey(newKey, keyName);
+                        (document.getElementById('new-api-key') as HTMLInputElement).value = '';
+                        (document.getElementById('key-name') as HTMLInputElement).value = '';
+                      }
+                    }}
+                    className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Add API Key
+                  </button>
+                </div>
               </div>
             )}
             
@@ -333,21 +577,138 @@ export default function Home() {
         </div>
       )}
 
+      {/* Authentication Modal */}
+      {showAuth && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 w-full max-w-md mx-4`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                {isLogin ? 'Login' : 'Register'}
+              </h2>
+              <button
+                onClick={() => setShowAuth(false)}
+                className={`p-1 rounded ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const username = formData.get('username') as string;
+              const password = formData.get('password') as string;
+              
+              if (isLogin) {
+                login(username, password);
+              } else {
+                const email = formData.get('email') as string;
+                register(username, email, password);
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Username
+                  </label>
+                  <input
+                    name="username"
+                    type="text"
+                    required
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                  />
+                </div>
+                
+                {!isLogin && (
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Email
+                    </label>
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                        isDarkMode 
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Password
+                  </label>
+                  <input
+                    name="password"
+                    type="password"
+                    required
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors ${
+                      isDarkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    }`}
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  {isLogin ? 'Login' : 'Register'}
+                </button>
+              </div>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className={`text-sm ${isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-500'}`}
+              >
+                {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main chat area */}
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {/* Demo mode indicator */}
-        {demoMode && (
-          <div className={`mb-4 p-3 rounded-lg ${
-            isDarkMode 
+        {/* Mode indicator */}
+        <div className={`mb-4 p-3 rounded-lg ${
+          demoMode 
+            ? isDarkMode 
               ? 'bg-indigo-900/50 border border-indigo-700' 
               : 'bg-indigo-50 border border-indigo-200'
+            : isDarkMode 
+              ? 'bg-green-900/50 border border-green-700' 
+              : 'bg-green-50 border border-green-200'
+        }`}>
+          <p className={`text-sm ${demoMode 
+            ? isDarkMode ? 'text-indigo-300' : 'text-indigo-700'
+            : isDarkMode ? 'text-green-300' : 'text-green-700'
           }`}>
-            <p className={`text-sm ${isDarkMode ? 'text-indigo-300' : 'text-indigo-700'}`}>
-              🎯 <strong>Demo Mode:</strong> Using pre-configured API key
-              {!demoAvailable && <span className="text-red-400 ml-2">(Demo not available - check API key)</span>}
-            </p>
-          </div>
-        )}
+            {demoMode ? (
+              <>
+                🎯 <strong>Demo Mode:</strong> Using pre-configured API key
+                {!demoAvailable && <span className="text-red-400 ml-2">(Demo not available - check API key)</span>}
+              </>
+            ) : (
+              <>
+                🔐 <strong>Personal Mode:</strong> Using your API key
+                {selectedAPIKeyId && userAPIKeys.find(k => k.id === selectedAPIKeyId) && (
+                  <span className="ml-2">({userAPIKeys.find(k => k.id === selectedAPIKeyId)?.key_name})</span>
+                )}
+              </>
+            )}
+          </p>
+        </div>
 
         {/* Messages */}
         <div className={`mb-6 h-96 overflow-y-auto rounded-lg border ${
@@ -360,6 +721,9 @@ export default function Home() {
               <div className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Start a conversation with your AI assistant!</p>
+                {!demoMode && !isAuthenticated && (
+                  <p className="text-sm mt-2">Please log in or enable demo mode to start chatting.</p>
+                )}
               </div>
             </div>
           ) : (
@@ -445,7 +809,7 @@ export default function Home() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message..."
-            disabled={isLoading}
+            disabled={isLoading || (!demoMode && !isAuthenticated)}
             className={`flex-1 p-3 rounded-lg border transition-colors ${
               isDarkMode 
                 ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-indigo-500' 
@@ -454,9 +818,9 @@ export default function Home() {
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input.trim() || (!demoMode && !isAuthenticated)}
             className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              isLoading || !input.trim()
+              isLoading || !input.trim() || (!demoMode && !isAuthenticated)
                 ? isDarkMode
                   ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
