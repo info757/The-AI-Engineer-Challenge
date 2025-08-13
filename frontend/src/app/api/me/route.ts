@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 // Simple in-memory storage for demo purposes
 const users: User[] = [
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const token = authHeader.substring(7);
     
     // Verify token
-    const decoded = verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     
     // Find user
     const user = users.find(u => u.id === decoded.userId);

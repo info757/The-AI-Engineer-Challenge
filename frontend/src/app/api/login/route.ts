@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 // Simple in-memory storage for demo purposes
 const users: User[] = [
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create JWT token
-    const token = sign(
+    const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
       { expiresIn: '24h' }

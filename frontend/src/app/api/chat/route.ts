@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { createDecipheriv } from 'crypto';
 
 // Simple in-memory storage for demo purposes
@@ -44,7 +44,7 @@ function getUserFromToken(request: NextRequest): JwtPayload | null {
 
   const token = authHeader.substring(7);
   try {
-    const decoded = verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     return decoded;
   } catch {
     return null;
