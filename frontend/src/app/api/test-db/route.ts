@@ -5,21 +5,30 @@ import { createClient } from '@supabase/supabase-js';
 async function testConnection() {
   try {
     // Check if environment variables are available
+    console.log('Checking environment variables...');
+    console.log('SUPABASE_URL exists:', !!process.env.SUPABASE_URL);
+    console.log('SUPABASE_ANON_KEY exists:', !!process.env.SUPABASE_ANON_KEY);
+    
     if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
       console.error('Supabase environment variables not found');
+      console.error('SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'NOT SET');
+      console.error('SUPABASE_ANON_KEY:', process.env.SUPABASE_ANON_KEY ? 'SET' : 'NOT SET');
       return false;
     }
 
+    console.log('Creating Supabase client...');
     // Create Supabase client
     const supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_ANON_KEY
     );
 
+    console.log('Testing Supabase connection...');
     // Test connection with a simple query
     const { error } = await supabase.from('_test').select('*').limit(1);
     
     if (error) {
+      console.log('Test table query failed, trying version query...');
       // If table doesn't exist, try a simple query
       const { error: testError } = await supabase.rpc('version');
       if (testError) {
@@ -38,7 +47,9 @@ async function testConnection() {
 
 export async function GET() {
   try {
+    console.log('=== Starting database test ===');
     const isConnected = await testConnection();
+    console.log('=== Database test completed ===');
     
     if (isConnected) {
       return NextResponse.json({ 
