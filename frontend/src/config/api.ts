@@ -1,16 +1,16 @@
-// API configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://the-ai-engineer-challenge-production-7c7e.up.railway.app';
+// API configuration for Vercel serverless functions
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
-// API endpoints
+// API endpoints (relative paths for Vercel serverless functions)
 export const API_ENDPOINTS = {
-  demoStatus: `${API_BASE_URL}/api/demo-status`,
-  chatDemo: `${API_BASE_URL}/api/chat-demo`,
-  chat: `${API_BASE_URL}/api/chat`,
-  register: `${API_BASE_URL}/api/register`,
-  login: `${API_BASE_URL}/api/login`,
-  me: `${API_BASE_URL}/api/me`,
-  apiKeys: `${API_BASE_URL}/api/api-keys`,
-  health: `${API_BASE_URL}/api/health`,
+  demoStatus: `/api/demo-status`,
+  chatDemo: `/api/chat`,
+  chat: `/api/chat`,
+  register: `/api/register`,
+  login: `/api/login`,
+  me: `/api/me`,
+  apiKeys: `/api/api-keys`,
+  health: `/api/health`,
 } as const;
 
 // Check if we're in production and backend is not available
