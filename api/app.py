@@ -38,7 +38,7 @@ async def startup_event():
 # This allows the API to be accessed from different domains/origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001", "http://localhost:3002", "http://127.0.0.1:3002"],  # Allow specific frontend origins
+    allow_origins=["*"],  # Allow all origins for Railway deployment
     allow_credentials=False,  # Disable credentials to avoid auth issues
     allow_methods=["GET", "POST", "OPTIONS"],  # Allow specific HTTP methods
     allow_headers=["*"],  # Allows all headers in requests
