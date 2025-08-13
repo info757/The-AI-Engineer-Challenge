@@ -303,11 +303,11 @@ export default function Home() {
   };
 
   const systemMessageTemplates = [
-    'You are a helpful AI assistant.',
-    'You are a coding expert. Provide clear, concise code examples.',
-    'You are a creative writer. Be imaginative and engaging.',
-    'You are a math tutor. Explain concepts step by step.',
-    'You are a language learning assistant. Help with grammar and vocabulary.'
+    { label: 'Helpful Assistant', message: 'You are a helpful AI assistant.' },
+    { label: 'Coding Expert', message: 'You are a coding expert. Provide clear, concise code examples.' },
+    { label: 'Creative Writer', message: 'You are a creative writer. Be imaginative and engaging.' },
+    { label: 'Math Tutor', message: 'You are a math tutor. Explain concepts step by step.' },
+    { label: 'Language Teacher', message: 'You are a language learning assistant. Help with grammar and vocabulary.' }
   ];
 
   return (
@@ -487,18 +487,18 @@ export default function Home() {
                     <button
                       key={index}
                       onClick={() => {
-                        setSystemMessage(template);
+                        setSystemMessage(template.message);
                         setMessages([]); // Clear conversation when changing personality
                       }}
                       className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                        systemMessage === template
+                        systemMessage === template.message
                           ? 'bg-blue-600 text-white'
                           : darkMode
                           ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                           : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                       }`}
                     >
-                      {template.split(' ').slice(0, 3).join(' ')}...
+                      {template.label}
                     </button>
                   ))}
                 </div>
