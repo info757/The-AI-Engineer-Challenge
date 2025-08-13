@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { getAPIKeyById } from '@/lib/supabase';
+import { getAPIKeyById } from '../../../lib/supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
