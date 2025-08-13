@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     // Check environment variables
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-    const jwtSecret = process.env.JWT_SECRET;
+    const jwtSecret = process.env.SUPABASE_JWT_SECRET;
     
     console.log('SUPABASE_URL exists:', !!supabaseUrl);
     console.log('SUPABASE_ANON_KEY exists:', !!supabaseAnonKey);

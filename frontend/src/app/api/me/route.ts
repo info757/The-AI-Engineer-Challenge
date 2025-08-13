@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'your-secret-key';
 
 // Create Supabase client conditionally
 let supabase: SupabaseClient | null = null;
