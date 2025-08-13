@@ -142,8 +142,9 @@ export default function Home() {
           ? { 
               ...msg, 
               reactions: { 
-                ...msg.reactions, 
-                [reaction]: !msg.reactions?.[reaction] 
+                thumbsUp: msg.reactions?.thumbsUp || false,
+                thumbsDown: msg.reactions?.thumbsDown || false,
+                [reaction]: !(msg.reactions?.[reaction] || false)
               }
             }
           : msg
