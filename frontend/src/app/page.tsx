@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Copy, ThumbsUp, ThumbsDown, Settings } from 'lucide-react';
+import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User, LogOut } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -14,6 +14,20 @@ interface Message {
   };
 }
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+}
+
+interface APIKey {
+  id: string;
+  key_name: string;
+  is_active: boolean;
+  created_at: string;
+  last_used?: string;
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -24,6 +38,16 @@ export default function Home() {
   const [demoMode, setDemoMode] = useState(true);
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const [systemMessage, setSystemMessage] = useState('You are a helpful AI assistant.');
+  
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [userAPIKeys, setUserAPIKeys] = useState<APIKey[]>([]);
+  const [selectedAPIKeyId, setSelectedAPIKeyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -44,9 +68,127 @@ export default function Home() {
     }
   }, [darkMode]);
 
+  // Authentication functions
+  const login = async (username: string, password: string) => {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAuthToken(data.access_token);
+        setIsAuthenticated(true);
+        setShowAuth(false);
+        await fetchUserData(data.access_token);
+        await fetchUserAPIKeys(data.access_token);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Login failed');
+      }
+    } catch (_error) {
+      setError('Login failed. Please try again.');
+    }
+  };
+
+  const register = async (username: string, email: string, password: string) => {
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password }),
+      });
+
+      if (response.ok) {
+        // Auto-login after successful registration
+        await login(username, password);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Registration failed');
+      }
+    } catch (_error) {
+      setError('Registration failed. Please try again.');
+    }
+  };
+
+  const logout = () => {
+    setAuthToken(null);
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setUserAPIKeys([]);
+    setSelectedAPIKeyId(null);
+    setMessages([]);
+    setDemoMode(true); // Switch back to demo mode
+  };
+
+  const fetchUserData = async (token: string) => {
+    try {
+      const response = await fetch('/api/me', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setCurrentUser(userData);
+      }
+    } catch (_error) {
+      console.error('Failed to fetch user data:', _error);
+    }
+  };
+
+  const fetchUserAPIKeys = async (token: string) => {
+    try {
+      const response = await fetch('/api/api-keys', {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const keys = await response.json();
+        setUserAPIKeys(keys);
+        if (keys.length > 0) {
+          setSelectedAPIKeyId(keys[0].id);
+        }
+      }
+    } catch (_error) {
+      console.error('Failed to fetch API keys:', _error);
+    }
+  };
+
+  const addAPIKey = async (apiKey: string, keyName: string = 'Default') => {
+    try {
+      const response = await fetch('/api/api-keys', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ api_key: apiKey, key_name: keyName }),
+      });
+
+      if (response.ok) {
+        await fetchUserAPIKeys(authToken!);
+        setError(null);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to add API key');
+      }
+    } catch (_error) {
+      setError('Failed to add API key. Please try again.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    // Check if we have either demo mode or authentication with API keys
+    if (!demoMode && !isAuthenticated) {
+      setError('Please log in or use demo mode to chat');
+      return;
+    }
+
+    // Clear any previous errors
+    setError(null);
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -62,16 +204,24 @@ export default function Home() {
     setIsTyping(true);
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authorization header for authenticated requests
+      if (!demoMode && authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           message: input.trim(),
           model: selectedModel,
           system_message: systemMessage,
-          demo_mode: demoMode
+          demo_mode: demoMode,
+          api_key_id: demoMode ? undefined : selectedAPIKeyId
         }),
       });
 
@@ -184,6 +334,32 @@ export default function Home() {
               </span>
             </div>
             
+            {/* Auth button */}
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-2">
+                <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  {currentUser?.username}
+                </span>
+                <button
+                  onClick={logout}
+                  className={`p-2 rounded-lg transition-colors ${
+                    darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className={`p-2 rounded-lg transition-colors ${
+                  darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                }`}
+              >
+                <User className="w-5 h-5" />
+              </button>
+            )}
+            
             <button
               onClick={() => setShowSettings(!showSettings)}
               className={`p-2 rounded-lg transition-colors ${
@@ -225,6 +401,66 @@ export default function Home() {
                 }`} />
               </button>
             </div>
+
+            {/* API Key Management - only show if authenticated and not in demo mode */}
+            {!demoMode && isAuthenticated && (
+              <div>
+                <label className="block font-medium mb-2">Your API Keys</label>
+                {userAPIKeys.length > 0 ? (
+                  <select
+                    value={selectedAPIKeyId || ''}
+                    onChange={(e) => setSelectedAPIKeyId(e.target.value)}
+                    className={`w-full p-2 border rounded-lg ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'
+                    }`}
+                  >
+                    {userAPIKeys.map((key) => (
+                      <option key={key.id} value={key.id}>
+                        {key.key_name} (Last used: {key.last_used ? new Date(key.last_used).toLocaleDateString() : 'Never'})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    No API keys added yet. Add one below.
+                  </p>
+                )}
+                
+                {/* Add new API key form */}
+                <div className="mt-3 space-y-2">
+                  <input
+                    type="password"
+                    placeholder="sk-... (new API key)"
+                    id="new-api-key"
+                    className={`w-full p-2 border rounded-lg ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                    }`}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Key name (optional)"
+                    id="key-name"
+                    className={`w-full p-2 border rounded-lg ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                    }`}
+                  />
+                  <button
+                    onClick={() => {
+                      const newKey = (document.getElementById('new-api-key') as HTMLInputElement)?.value;
+                      const keyName = (document.getElementById('key-name') as HTMLInputElement)?.value || 'Default';
+                      if (newKey) {
+                        addAPIKey(newKey, keyName);
+                        (document.getElementById('new-api-key') as HTMLInputElement).value = '';
+                        (document.getElementById('key-name') as HTMLInputElement).value = '';
+                      }
+                    }}
+                    className="w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Add API Key
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* AI Model Selection */}
             <div>
@@ -284,6 +520,101 @@ export default function Home() {
         </div>
       )}
 
+      {/* Authentication Modal */}
+      {showAuth && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 w-full max-w-md mx-4`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                {isLogin ? 'Login' : 'Register'}
+              </h2>
+              <button
+                onClick={() => setShowAuth(false)}
+                className={`p-1 rounded ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const username = formData.get('username') as string;
+              const password = formData.get('password') as string;
+              
+              if (isLogin) {
+                login(username, password);
+              } else {
+                const email = formData.get('email') as string;
+                register(username, email, password);
+              }
+            }}>
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Username
+                  </label>
+                  <input
+                    name="username"
+                    type="text"
+                    required
+                    className={`w-full p-2 border rounded-lg ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                    }`}
+                  />
+                </div>
+                
+                {!isLogin && (
+                  <div>
+                    <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      Email
+                    </label>
+                    <input
+                      name="email"
+                      type="email"
+                      required
+                      className={`w-full p-2 border rounded-lg ${
+                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Password
+                  </label>
+                  <input
+                    name="password"
+                    type="password"
+                    required
+                    className={`w-full p-2 border rounded-lg ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                    }`}
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  className="w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  {isLogin ? 'Login' : 'Register'}
+                </button>
+              </div>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className={`text-sm ${darkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-500'}`}
+              >
+                {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Chat Container */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className={`rounded-lg border transition-colors duration-300 ${
@@ -296,6 +627,9 @@ export default function Home() {
                 <div className="text-4xl mb-4">🤖</div>
                 <p className="text-lg font-medium mb-2">Welcome to AI Chat Assistant!</p>
                 <p>Start a conversation by typing a message below.</p>
+                {!demoMode && !isAuthenticated && (
+                  <p className="text-sm mt-2">Please log in or enable demo mode to start chatting.</p>
+                )}
               </div>
             ) : (
               messages.map((message) => (
@@ -408,13 +742,13 @@ export default function Home() {
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                     : 'bg-white border-gray-300 placeholder-gray-500'
                 }`}
-                disabled={isLoading}
+                disabled={isLoading || (!demoMode && !isAuthenticated)}
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || !input.trim() || (!demoMode && !isAuthenticated)}
                 className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                  isLoading || !input.trim()
+                  isLoading || !input.trim() || (!demoMode && !isAuthenticated)
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
@@ -424,6 +758,17 @@ export default function Home() {
             </form>
           </div>
         </div>
+
+        {/* Error display */}
+        {error && (
+          <div className={`mt-4 p-3 rounded-lg ${
+            darkMode ? 'bg-red-900/50 border border-red-700' : 'bg-red-50 border border-red-200'
+          }`}>
+            <p className={`text-sm ${darkMode ? 'text-red-300' : 'text-red-700'}`}>
+              Error: {error}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
