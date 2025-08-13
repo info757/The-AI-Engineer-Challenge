@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server';
-import { testConnection } from '../../../lib/db';
+import { sql } from '@vercel/postgres';
+
+// Database connection test function
+async function testConnection() {
+  try {
+    const result = await sql`SELECT NOW()`;
+    console.log('Database connection successful:', result.rows[0]);
+    return true;
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    return false;
+  }
+}
 
 export async function GET() {
   try {
