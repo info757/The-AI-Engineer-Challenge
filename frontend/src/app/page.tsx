@@ -49,7 +49,8 @@ export default function Home() {
   
   // Authentication state management
   const [isAuthenticated, setIsAuthenticated] = useState(false);     // User authentication status
-  const [_currentUser, setCurrentUser] = useState<User | null>(null); // Current user data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentUser, setCurrentUser] = useState<User | null>(null); // Current user data
   const [authToken, setAuthToken] = useState<string | null>(null);   // JWT token
   const [showAuth, setShowAuth] = useState(false);                   // Auth modal visibility
   const [isLogin, setIsLogin] = useState(true);                      // Login vs Register mode
@@ -111,7 +112,8 @@ export default function Home() {
         const errorData = await response.json();
         setError(errorData.detail || 'Login failed');
       }
-    } catch (_error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
       setError('Login failed. Please try again.');
     }
   };
@@ -131,7 +133,8 @@ export default function Home() {
         const errorData = await response.json();
         setError(errorData.detail || 'Registration failed');
       }
-    } catch (_error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
       setError('Registration failed. Please try again.');
     }
   };
@@ -194,7 +197,8 @@ export default function Home() {
         const errorData = await response.json();
         setError(errorData.detail || 'Failed to add API key');
       }
-    } catch (_error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
       setError('Failed to add API key. Please try again.');
     }
   };

@@ -1,4 +1,9 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/.next"
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/next.config.ts",
+      "use": "@vercel/next"
+    }
+  ]
 } 
