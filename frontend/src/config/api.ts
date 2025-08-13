@@ -1,5 +1,5 @@
 // API configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://your-app-name.railway.app';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://the-ai-engineer-challenge-production-7c7e.up.railway.app';
 
 // API endpoints
 export const API_ENDPOINTS = {
