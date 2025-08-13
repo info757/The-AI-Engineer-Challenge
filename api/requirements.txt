@@ -7,6 +7,8 @@ uvicorn==0.24.0
 openai==1.99.6
 # Data validation and settings management
 pydantic==2.5.0
+# Email validation for Pydantic
+email-validator==2.1.0
 # File upload support for FastAPI
 python-multipart==0.0.6
 # Database ORM for user management
