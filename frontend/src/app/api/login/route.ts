@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs'; // Fixed import for Vercel compatibility
 import jwt from 'jsonwebtoken';
 
 // Simple in-memory storage for demo purposes
