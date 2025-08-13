@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
+import { storage } from '../../../lib/storage';
 
 // TypeScript interfaces for better type safety
 interface User {
@@ -15,9 +16,6 @@ interface LoginResponse {
   access_token: string;
   token_type: string;
 }
-
-// In-memory storage for demo (in production, use a proper database)
-const users: User[] = [];
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -34,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user
-    const user = users.find(u => u.username === username);
+    const user = storage.findUserByUsername(username);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
+import { storage } from '../../../lib/storage';
 
 // TypeScript interfaces for better type safety
 interface User {
@@ -19,9 +20,6 @@ interface UserResponse {
   token_type: string;
 }
 
-// In-memory storage for demo (in production, use a proper database)
-const users: User[] = [];
-
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export async function POST(request: NextRequest) {
@@ -37,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = users.find(u => u.username === username || u.email === email);
+    const existingUser = storage.findUserByUsername(username) || storage.findUserByEmail(email);
     if (existingUser) {
       return NextResponse.json(
         { error: 'Username or email already exists' },
@@ -57,7 +55,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     };
 
-    users.push(user);
+    storage.addUser(user);
 
     // Create JWT token
     const token = sign(

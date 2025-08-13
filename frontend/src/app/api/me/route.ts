@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
+import { storage } from '../../../lib/storage';
 
 // TypeScript interfaces for better type safety
 interface User {
@@ -21,9 +22,6 @@ interface UserResponse {
   email: string;
 }
 
-// In-memory storage for demo (in production, use a proper database)
-const users: User[] = [];
-
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 export async function GET(request: NextRequest) {
@@ -40,7 +38,7 @@ export async function GET(request: NextRequest) {
     
     // Verify token
     const decoded = verify(token, JWT_SECRET) as JwtPayload;
-    const user = users.find(u => u.id === decoded.userId);
+    const user = storage.findUserById(decoded.userId);
 
     if (!user) {
       return NextResponse.json(

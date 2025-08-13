@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
 import { createCipheriv, randomBytes } from 'crypto';
+import { storage } from '../../../lib/storage';
 
 // TypeScript interfaces for better type safety
 interface APIKey {
@@ -24,9 +25,6 @@ interface APIKeyResponse {
   is_active: boolean;
   last_used?: string;
 }
-
-// In-memory storage for demo (in production, use a proper database)
-const apiKeys: APIKey[] = [];
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-encryption-key-32-chars-long!';
@@ -67,7 +65,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userApiKeys = apiKeys.filter(key => key.userId === user.userId);
+    const userApiKeys = storage.findAPIKeysByUserId(user.userId);
     
     const response: APIKeyResponse[] = userApiKeys.map(key => ({
       id: key.id,
@@ -121,7 +119,7 @@ export async function POST(request: NextRequest) {
       last_used: undefined
     };
 
-    apiKeys.push(newApiKey);
+    storage.addAPIKey(newApiKey);
 
     const response: APIKeyResponse = {
       id: newApiKey.id,
@@ -162,16 +160,15 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const keyIndex = apiKeys.findIndex(key => key.id === keyId && key.userId === user.userId);
-    
-    if (keyIndex === -1) {
+    const key = storage.findAPIKeyById(keyId);
+    if (!key || key.userId !== user.userId) {
       return NextResponse.json(
         { error: 'API key not found' },
         { status: 404 }
       );
     }
 
-    apiKeys.splice(keyIndex, 1);
+    storage.deleteAPIKey(keyId);
 
     return NextResponse.json({ message: 'API key deleted successfully' });
 
