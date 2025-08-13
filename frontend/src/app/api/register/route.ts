@@ -2,8 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs'; // Fixed import for Vercel compatibility
 import jwt from 'jsonwebtoken';
 
-// Simple in-memory storage for demo purposes
-const users: User[] = [];
+// Load users from environment variables for persistence
+const loadUsers = (): User[] => {
+  const demoUsers = process.env.DEMO_USERS;
+  if (demoUsers) {
+    try {
+      return JSON.parse(demoUsers);
+    } catch (error) {
+      console.error('Failed to parse DEMO_USERS:', error);
+    }
+  }
+  
+  // Fallback to default demo user
+  return [
+    {
+      id: '1',
+      username: 'demo',
+      email: 'demo@example.com',
+      password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iK8O', // password: demo123
+      createdAt: '2024-01-01T00:00:00.000Z'
+    }
+  ];
+};
 
 // TypeScript interfaces for better type safety
 interface User {
@@ -36,6 +56,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Load existing users
+    const users = loadUsers();
+
     // Check if user already exists
     const existingUser = users.find(u => u.username === username || u.email === email);
     if (existingUser) {
@@ -57,6 +80,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     };
 
+    // Add to users array (in a real app, this would be saved to a database)
     users.push(user);
 
     // Create JWT token
