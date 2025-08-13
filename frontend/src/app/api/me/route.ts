@@ -34,7 +34,7 @@ async function getUserById(id: string): Promise<User | null> {
       .from('users')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error getting user by id:', error);

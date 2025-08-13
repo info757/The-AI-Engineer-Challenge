@@ -35,7 +35,7 @@ async function getUserByEmail(email: string): Promise<User | null> {
       .from('users')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error getting user by email:', error);
