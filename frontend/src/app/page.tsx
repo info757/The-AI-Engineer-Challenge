@@ -69,21 +69,21 @@ export default function Home() {
   }, [darkMode]);
 
   // Authentication functions
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setAuthToken(data.access_token);
+        setAuthToken(data.token);
         setIsAuthenticated(true);
         setShowAuth(false);
-        await fetchUserData(data.access_token);
-        await fetchUserAPIKeys(data.access_token);
+        await fetchUserData(data.token);
+        await fetchUserAPIKeys(data.token);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Login failed');
@@ -103,7 +103,7 @@ export default function Home() {
 
       if (response.ok) {
         // Auto-login after successful registration
-        await login(username, password);
+        await login(email, password);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Registration failed');
@@ -539,39 +539,26 @@ export default function Home() {
             <form onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
-              const username = formData.get('username') as string;
               const password = formData.get('password') as string;
               
               if (isLogin) {
-                login(username, password);
+                const email = formData.get('email') as string;
+                login(email, password);
               } else {
+                const username = formData.get('username') as string;
                 const email = formData.get('email') as string;
                 register(username, email, password);
               }
             }}>
               <div className="space-y-4">
-                <div>
-                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    Username
-                  </label>
-                  <input
-                    name="username"
-                    type="text"
-                    required
-                    className={`w-full p-2 border rounded-lg ${
-                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
-                    }`}
-                  />
-                </div>
-                
                 {!isLogin && (
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Email
+                      Username
                     </label>
                     <input
-                      name="email"
-                      type="email"
+                      name="username"
+                      type="text"
                       required
                       className={`w-full p-2 border rounded-lg ${
                         darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
@@ -579,6 +566,20 @@ export default function Home() {
                     />
                   </div>
                 )}
+                
+                <div>
+                  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Email
+                  </label>
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    className={`w-full p-2 border rounded-lg ${
+                      darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
+                    }`}
+                  />
+                </div>
                 
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
