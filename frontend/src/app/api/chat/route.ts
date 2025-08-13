@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { verify } from 'jsonwebtoken';
 import { createDecipheriv } from 'crypto';
-import { storage } from '../../../lib/storage';
+
+// Simple in-memory storage for demo purposes
+const apiKeys: APIKey[] = [];
 
 // TypeScript interfaces for better type safety
 interface APIKey {
@@ -85,14 +87,10 @@ export async function POST(request: NextRequest) {
       let userApiKey;
       if (api_key_id) {
         // Use specific API key
-        userApiKey = storage.findAPIKeyById(api_key_id);
-        if (userApiKey && userApiKey.userId !== user.userId) {
-          userApiKey = null; // Not owned by this user
-        }
+        userApiKey = apiKeys.find(k => k.id === api_key_id && k.userId === user.userId);
       } else {
         // Use first available API key
-        const userKeys = storage.findAPIKeysByUserId(user.userId);
-        userApiKey = userKeys.find(key => key.is_active);
+        userApiKey = apiKeys.find(k => k.userId === user.userId && k.is_active);
       }
 
       if (!userApiKey) {
@@ -105,7 +103,7 @@ export async function POST(request: NextRequest) {
       try {
         apiKeyToUse = decrypt(userApiKey.encrypted_api_key);
         // Update last used timestamp
-        storage.updateAPIKey(userApiKey.id, { last_used: new Date().toISOString() });
+        userApiKey.last_used = new Date().toISOString();
       } catch {
         return NextResponse.json(
           { error: 'Failed to decrypt API key. Please re-add your API key.' },

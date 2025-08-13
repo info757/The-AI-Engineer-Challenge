@@ -1,7 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
-import { storage } from '../../../lib/storage';
+
+// Simple in-memory storage for demo purposes
+const users: User[] = [
+  {
+    id: '1',
+    username: 'demo',
+    email: 'demo@example.com',
+    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iK8O', // password: demo123
+    createdAt: '2024-01-01T00:00:00.000Z'
+  }
+];
 
 // TypeScript interfaces for better type safety
 interface User {
@@ -35,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by username
-    const user = storage.findUserByUsername(username);
+    const user = users.find(u => u.username === username);
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },

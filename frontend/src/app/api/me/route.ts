@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
-import { storage } from '../../../lib/storage';
+
+// Simple in-memory storage for demo purposes
+const users: User[] = [
+  {
+    id: '1',
+    username: 'demo',
+    email: 'demo@example.com',
+    password: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/HS.iK8O',
+    createdAt: '2024-01-01T00:00:00.000Z'
+  }
+];
 
 // TypeScript interfaces for better type safety
 interface User {
@@ -40,7 +50,7 @@ export async function GET(request: NextRequest) {
     const decoded = verify(token, JWT_SECRET) as JwtPayload;
     
     // Find user
-    const user = storage.findUserById(decoded.userId);
+    const user = users.find(u => u.id === decoded.userId);
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },

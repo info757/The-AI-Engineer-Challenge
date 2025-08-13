@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
 import { createCipheriv, randomBytes } from 'crypto';
-import { storage } from '../../../lib/storage';
+
+// Simple in-memory storage for demo purposes
+const apiKeys: APIKey[] = [];
 
 // TypeScript interfaces for better type safety
 interface APIKey {
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userKeys = storage.findAPIKeysByUserId(user.userId);
+    const userKeys = apiKeys.filter(k => k.userId === user.userId);
     const response: APIKeyResponse[] = userKeys.map(key => ({
       id: key.id,
       key_name: key.key_name,
@@ -120,7 +122,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     };
 
-    storage.addAPIKey(newKey);
+    apiKeys.push(newKey);
 
     const response: APIKeyResponse = {
       id: newKey.id,
@@ -162,8 +164,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Find the key and verify ownership
-    const key = storage.findAPIKeyById(keyId);
-    if (!key || key.userId !== user.userId) {
+    const keyIndex = apiKeys.findIndex(k => k.id === keyId && k.userId === user.userId);
+    if (keyIndex === -1) {
       return NextResponse.json(
         { error: 'API key not found' },
         { status: 404 }
@@ -171,13 +173,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the key
-    const deleted = storage.deleteAPIKey(keyId);
-    if (!deleted) {
-      return NextResponse.json(
-        { error: 'Failed to delete API key' },
-        { status: 500 }
-      );
-    }
+    apiKeys.splice(keyIndex, 1);
 
     return NextResponse.json({ success: true });
 
