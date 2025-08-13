@@ -250,7 +250,10 @@ export default function Home() {
                   {systemMessageTemplates.map((template, index) => (
                     <button
                       key={index}
-                      onClick={() => setSystemMessage(template)}
+                      onClick={() => {
+                        setSystemMessage(template);
+                        setMessages([]); // Clear conversation when changing personality
+                      }}
                       className={`px-3 py-1 text-sm rounded-full transition-colors ${
                         systemMessage === template
                           ? 'bg-blue-600 text-white'
@@ -263,6 +266,9 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+              </div>
+              <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                Current: {systemMessage}
               </div>
               <textarea
                 value={systemMessage}
