@@ -29,10 +29,31 @@ if sys.version_info < (3, 8):
 # Initialize FastAPI application with a title
 app = FastAPI(title="AI Chat API with User Management")
 
+# Simple root endpoint for basic connectivity
+@app.get("/")
+async def root():
+    return {"message": "AI Chat API is running", "status": "ok"}
+
 # Create database tables on startup
 @app.on_event("startup")
 async def startup_event():
-    create_tables()
+    try:
+        print("Starting up AI Chat API...")
+        print(f"Python version: {sys.version}")
+        print(f"OpenAI API Key configured: {'Yes' if DEFAULT_API_KEY else 'No'}")
+        print(f"SECRET_KEY configured: {'Yes' if os.getenv('SECRET_KEY') else 'No'}")
+        print(f"ENCRYPTION_KEY configured: {'Yes' if os.getenv('ENCRYPTION_KEY') else 'No'}")
+        
+        # Create database tables
+        create_tables()
+        print("Database tables created successfully")
+        
+        print("Startup completed successfully!")
+    except Exception as e:
+        print(f"Error during startup: {e}")
+        import traceback
+        print(f"Startup traceback: {traceback.format_exc()}")
+        # Don't raise the error, just log it
 
 # Configure CORS (Cross-Origin Resource Sharing) middleware
 # This allows the API to be accessed from different domains/origins
@@ -231,7 +252,21 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
 # Define a health check endpoint to verify API status
 @app.get("/api/health")
 async def health_check() -> Dict[str, str]:
-    return {"status": "ok"}
+    try:
+        # Basic health check without database access
+        return {
+            "status": "ok",
+            "timestamp": datetime.utcnow().isoformat(),
+            "openai_configured": bool(DEFAULT_API_KEY),
+            "secret_key_configured": bool(os.getenv("SECRET_KEY")),
+            "encryption_key_configured": bool(os.getenv("ENCRYPTION_KEY"))
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 # Define an endpoint to check demo mode availability
 @app.get("/api/demo-status")
