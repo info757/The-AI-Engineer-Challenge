@@ -6,7 +6,7 @@ import {
   getUserAPIKeys, 
   deleteAPIKey, 
   getAPIKeyById 
-} from '../../../lib/supabase';
+} from '@/lib/supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
