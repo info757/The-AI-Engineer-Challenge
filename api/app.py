@@ -172,6 +172,8 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
                 raise HTTPException(status_code=404, detail="API key not found or not accessible")
             
             api_key_to_use = decrypt_api_key(user_api_key.encrypted_api_key)
+            if api_key_to_use == "invalid-key":
+                raise HTTPException(status_code=500, detail="API key decryption failed. Please re-add your API key.")
             # Update last used timestamp
             user_api_key.last_used = datetime.utcnow()
             db.commit()
@@ -184,6 +186,8 @@ async def chat(request: ChatRequest, current_user: User = Depends(get_current_us
             ).first()
             if default_key:
                 api_key_to_use = decrypt_api_key(default_key.encrypted_api_key)
+                if api_key_to_use == "invalid-key":
+                    raise HTTPException(status_code=500, detail="API key decryption failed. Please re-add your API key.")
                 default_key.last_used = datetime.utcnow()
                 db.commit()
                 print(f"Using user's default API key: {default_key.key_name}")
