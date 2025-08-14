@@ -157,8 +157,12 @@ async function getAPIKeyById(id: string): Promise<APIKey | null> {
 // GET - Get user's API keys
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== API Key Retrieval Request ===');
     const userId = getUserIdFromToken(request);
+    console.log('User ID:', userId);
+    
     if (!userId) {
+      console.log('No user ID found - unauthorized');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -173,7 +177,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('Fetching API keys for user...');
     const apiKeys = await getUserAPIKeys(userId);
+    console.log('Found API keys:', apiKeys.length);
     
     // Return API keys without the encrypted key for security
     const safeApiKeys = apiKeys.map(key => ({
@@ -183,6 +189,7 @@ export async function GET(request: NextRequest) {
       updated_at: key.updated_at
     }));
 
+    console.log('Returning safe API keys:', safeApiKeys);
     return NextResponse.json({ apiKeys: safeApiKeys });
 
   } catch (error) {
@@ -197,8 +204,12 @@ export async function GET(request: NextRequest) {
 // POST - Create new API key
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== API Key Creation Request ===');
     const userId = getUserIdFromToken(request);
+    console.log('User ID:', userId);
+    
     if (!userId) {
+      console.log('No user ID found - unauthorized');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -213,26 +224,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, apiKey } = await request.json();
+    const body = await request.json();
+    console.log('Request body:', body);
+    
+    const { name, apiKey } = body;
 
     if (!name || !apiKey) {
+      console.log('Missing required fields - name:', !!name, 'apiKey:', !!apiKey);
       return NextResponse.json(
         { error: 'Name and API key are required' },
         { status: 400 }
       );
     }
+    
+    console.log('All required fields present');
 
     // Encrypt the API key
     const encryptedKey = encrypt(apiKey);
 
     // Save to Supabase
+    console.log('Attempting to save API key to database...');
     const savedKey = await createAPIKey(userId, name, encryptedKey);
     if (!savedKey) {
+      console.log('Failed to save API key to database');
       return NextResponse.json(
         { error: 'Failed to save API key' },
         { status: 500 }
       );
     }
+    
+    console.log('API key saved successfully:', savedKey.id);
 
     return NextResponse.json({
       message: 'API key created successfully',
