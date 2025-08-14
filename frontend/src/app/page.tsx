@@ -508,55 +508,6 @@ export default function Home() {
                   </button>
                   
                   {/* Test JWT Button */}
-                  <button
-                    onClick={async () => {
-                      console.log('=== Testing JWT Token ===');
-                      try {
-                        const response = await fetch('/api/test-jwt', {
-                          headers: { 'Authorization': `Bearer ${authToken}` },
-                        });
-                        const data = await response.json();
-                        console.log('JWT Test Response:', data);
-                        if (data.success) {
-                          setError(null);
-                        } else {
-                          setError(`JWT Test Failed: ${data.error}`);
-                        }
-                      } catch (error) {
-                        console.error('JWT Test Error:', error);
-                        setError('JWT Test Error: ' + error);
-                      }
-                    }}
-                    className="w-full p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mt-2"
-                  >
-                    Test JWT Token
-                  </button>
-                  
-                  {/* Test API Keys Route Button */}
-                  <button
-                    onClick={async () => {
-                      console.log('=== Testing API Keys Route ===');
-                      try {
-                        const response = await fetch('/api/api-keys', {
-                          headers: { 'Authorization': `Bearer ${authToken}` },
-                        });
-                        const data = await response.json();
-                        console.log('API Keys Route Test Response:', data);
-                        if (data.apiKeys !== undefined) {
-                          setError(null);
-                          console.log('API Keys Route working - found', data.apiKeys.length, 'keys');
-                        } else {
-                          setError(`API Keys Route Test Failed: ${data.error}`);
-                        }
-                      } catch (error) {
-                        console.error('API Keys Route Test Error:', error);
-                        setError('API Keys Route Test Error: ' + error);
-                      }
-                    }}
-                    className="w-full p-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mt-2"
-                  >
-                    Test API Keys Route (with auth)
-                  </button>
                 </div>
               </div>
             )}
