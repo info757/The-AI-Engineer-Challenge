@@ -12,7 +12,7 @@
 
 ### ✨ **What Makes This App Special**
 
-🎯 **Dual-Mode Operation** - Demo mode (no API key needed) OR personal API key for full control  
+🎯 **Dual-Mode Operation** - Demo mode (shared API key) OR personal API key for full control  
 🤖 **AI Model Selection** - Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo  
 🎭 **AI Personality Templates** - Pre-built personalities (Code Expert, Creative Writer, Math Tutor, etc.)  
 🌙 **Dark/Light Mode** - Beautiful theme switching with smooth transitions  
@@ -20,7 +20,7 @@
 📋 **Copy to Clipboard** - One-click message copying  
 ✨ **Animated Typing** - Real-time streaming with bouncing dots  
 🎨 **Modern UI/UX** - Gradient backgrounds, smooth animations, responsive design  
-🔒 **Secure** - Password-protected API keys, HTTPS only  
+🔒 **Secure** - Authentication required, rate-limited, encrypted API keys  
 📱 **Mobile Ready** - Works perfectly on all devices  
 
 ---
@@ -96,7 +96,41 @@ npm run dev
 ### **Test the Application**
 1. Backend API: http://localhost:8000/docs
 2. Frontend: http://localhost:3000
-3. Demo mode works without API key!
+3. Demo mode works with shared API key (requires login)!
+
+---
+
+## 🔒 **Security Features**
+
+### **Authentication & Authorization**
+- **Required Login**: All chat functionality now requires user authentication
+- **JWT Tokens**: Secure token-based authentication
+- **User Isolation**: Users can only access their own API keys and data
+
+### **Rate Limiting**
+- **10 requests per minute** per user to prevent abuse
+- **Automatic reset** after the time window expires
+- **429 status code** when limit exceeded
+
+### **API Key Security**
+- **AES-256 Encryption**: All API keys are encrypted before storage
+- **User-Specific Access**: Users can only access their own API keys
+- **Secure Transmission**: API keys are never sent in plain text
+
+### **Database Security**
+- **Row Level Security (RLS)**: Supabase policies restrict data access
+- **User-Scoped Queries**: All database operations are user-specific
+- **No Public Access**: Database is not publicly accessible
+
+### **Environment Variables**
+Make sure to set these environment variables for production:
+```bash
+JWT_SECRET=your-secure-jwt-secret
+ENCRYPTION_KEY=your-32-character-encryption-key
+OPENAI_API_KEY=your-openai-api-key-for-demo-mode
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
 ---
 

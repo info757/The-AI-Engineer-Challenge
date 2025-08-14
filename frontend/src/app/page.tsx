@@ -194,9 +194,9 @@ export default function Home() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    // Check if we have either demo mode or authentication with API keys
-    if (!demoMode && !isAuthenticated) {
-      setError('Please log in or use demo mode to chat');
+    // Check if user is authenticated (required for both demo and personal mode)
+    if (!isAuthenticated) {
+      setError('Please log in to chat');
       return;
     }
 
@@ -221,8 +221,8 @@ export default function Home() {
         'Content-Type': 'application/json',
       };
 
-      // Add authorization header for authenticated requests
-      if (!demoMode && authToken) {
+      // Add authorization header for all requests (required for both demo and personal mode)
+      if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
       }
 
@@ -402,7 +402,12 @@ export default function Home() {
           <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
             {/* Demo Mode Toggle */}
             <div className="flex items-center justify-between">
-              <label className="font-medium">Demo Mode</label>
+              <div>
+                <label className="font-medium">Demo Mode</label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Use shared API key (requires login)
+                </p>
+              </div>
               <button
                 onClick={() => setDemoMode(!demoMode)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -641,8 +646,8 @@ export default function Home() {
                 <div className="text-4xl mb-4">🤖</div>
                 <p className="text-lg font-medium mb-2">Welcome to AI Chat Assistant!</p>
                 <p>Start a conversation by typing a message below.</p>
-                {!demoMode && !isAuthenticated && (
-                  <p className="text-sm mt-2">Please log in or enable demo mode to start chatting.</p>
+                {!isAuthenticated && (
+                  <p className="text-sm mt-2">Please log in to start chatting.</p>
                 )}
               </div>
             ) : (
@@ -756,16 +761,16 @@ export default function Home() {
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                     : 'bg-white border-gray-300 placeholder-gray-500'
                 }`}
-                disabled={isLoading || (!demoMode && !isAuthenticated)}
+                disabled={isLoading || !isAuthenticated}
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim() || (!demoMode && !isAuthenticated)}
-                className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                  isLoading || !input.trim() || (!demoMode && !isAuthenticated)
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                disabled={isLoading || !input.trim() || !isAuthenticated}
+                                  className={`px-4 py-3 rounded-lg font-medium transition-colors ${
+                    isLoading || !input.trim() || !isAuthenticated
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
               >
                 <Send className="w-5 h-5" />
               </button>

@@ -4,6 +4,11 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+// Simple in-memory rate limiting (in production, use Redis or similar)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 const DEMO_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
@@ -53,6 +58,28 @@ function getUserIdFromToken(request: NextRequest): string | null {
   }
 }
 
+// Rate limiting function
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetTime) {
+    // Reset or create new rate limit entry
+    rateLimitMap.set(userId, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW
+    });
+    return true;
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return false;
+  }
+  
+  userLimit.count++;
+  return true;
+}
+
 async function getAPIKeyById(id: string): Promise<APIKey | null> {
   if (!supabase) {
     console.error('Supabase client not initialized - missing environment variables');
@@ -89,19 +116,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Require authentication for all requests
+    const userId = getUserIdFromToken(request);
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Check rate limit
+    if (!checkRateLimit(userId)) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
     let openaiApiKey: string;
 
-    // Check if using demo mode or personal API key
+    // Check if using personal API key or demo mode
     if (api_key_id) {
       // Personal API key mode
-      const userId = getUserIdFromToken(request);
-      if (!userId) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        );
-      }
-
       // Check if Supabase is available
       if (!supabase) {
         return NextResponse.json(
@@ -122,7 +158,7 @@ export async function POST(request: NextRequest) {
       // Decrypt the API key
       openaiApiKey = decrypt(apiKeyRecord.encrypted_key);
     } else {
-      // Demo mode
+      // Demo mode - still requires authentication
       if (!DEMO_OPENAI_API_KEY) {
         return NextResponse.json(
           { error: 'Demo mode not available' },

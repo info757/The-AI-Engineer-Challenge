@@ -81,54 +81,75 @@ async function getUserByEmail(email: string): Promise<User | null> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, email, password } = await request.json();
+    console.log('=== Registration request started ===');
+    
+    const body = await request.json();
+    console.log('Request body:', body);
+    
+    const { username, email, password } = body;
 
     // Validate input
     if (!username || !email || !password) {
+      console.log('Missing required fields');
       return NextResponse.json(
         { error: 'Username, email, and password are required' },
         { status: 400 }
       );
     }
 
+    console.log('Input validation passed');
+
     // Check if Supabase is available
     if (!supabase) {
+      console.log('Supabase client not available');
       return NextResponse.json(
         { error: 'Database not available - missing environment variables' },
         { status: 500 }
       );
     }
 
+    console.log('Supabase client available');
+
     // Check if user already exists
+    console.log('Checking if user exists...');
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
+      console.log('User already exists');
       return NextResponse.json(
         { error: 'User with this email already exists' },
         { status: 409 }
       );
     }
+    console.log('No existing user found');
 
     // Hash password
+    console.log('Hashing password...');
     const saltRounds = 12;
     const passwordHash = await bcrypt.hash(password, saltRounds);
+    console.log('Password hashed successfully');
 
     // Create user in Supabase
+    console.log('Creating user in database...');
     const user = await createUser(username, email, passwordHash);
     if (!user) {
+      console.log('Failed to create user');
       return NextResponse.json(
         { error: 'Failed to create user' },
         { status: 500 }
       );
     }
+    console.log('User created successfully:', user.id);
 
     // Generate JWT token
+    console.log('Generating JWT token...');
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+    console.log('JWT token generated successfully');
 
-    return NextResponse.json({
+    const result = {
       message: 'User registered successfully',
       token,
       user: {
@@ -136,12 +157,15 @@ export async function POST(request: NextRequest) {
         username: user.username,
         email: user.email
       }
-    });
+    };
+
+    console.log('=== Registration completed successfully ===');
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
