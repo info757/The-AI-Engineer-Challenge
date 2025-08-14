@@ -28,7 +28,9 @@ interface APIKey {
 // Encryption function
 function encrypt(text: string): string {
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  // Convert hex string to buffer for AES-256
+  const keyBuffer = Buffer.from(ENCRYPTION_KEY, 'hex');
+  const cipher = crypto.createCipheriv('aes-256-cbc', keyBuffer, iv);
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return iv.toString('hex') + ':' + encrypted;
