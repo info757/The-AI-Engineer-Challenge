@@ -3,6 +3,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User, LogOut } from 'lucide-react';
 
+/**
+ * Main AI Chat Application Component
+ * 
+ * Features:
+ * - Secure user authentication (register/login)
+ * - Personal API key management with AES-256 encryption
+ * - AI chat with multiple models (GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
+ * - AI personality templates (Code Expert, Creative Writer, etc.)
+ * - Dark/Light mode theme switching
+ * - Message reactions (thumbs up/down)
+ * - Copy to clipboard functionality
+ * - Responsive design for mobile and desktop
+ */
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -34,6 +48,7 @@ export default function Home() {
   const [isTyping, setIsTyping] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  // Note: demoMode is kept for UI consistency but authentication is now required for all features
   const [demoMode, setDemoMode] = useState(true);
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const [systemMessage, setSystemMessage] = useState('You are a helpful AI assistant.');
@@ -329,10 +344,10 @@ export default function Home() {
 
   const systemMessageTemplates = [
     { label: 'Helpful Assistant', message: 'You are a helpful AI assistant.' },
-    { label: 'Coding Expert', message: 'You are a coding expert. Provide clear, concise code examples.' },
-    { label: 'Creative Writer', message: 'You are a creative writer. Be imaginative and engaging.' },
-    { label: 'Math Tutor', message: 'You are a math tutor. Explain concepts step by step.' },
-    { label: 'Language Teacher', message: 'You are a language learning assistant. Help with grammar and vocabulary.' }
+    { label: 'Coding Expert', message: 'You are a coding expert. Provide clear, concise code examples and best practices.' },
+    { label: 'Creative Writer', message: 'You are a creative writer. Be imaginative, engaging, and help with storytelling.' },
+    { label: 'Therapist', message: 'You are a supportive conversational partner. Provide empathetic listening and gentle guidance, but always recommend professional help for serious issues.' },
+    { label: 'Medical Advice (Not a Doctor)', message: 'I can provide general health information and wellness tips, but I am not a doctor. Always consult with healthcare professionals for medical advice, diagnosis, or treatment.' }
   ];
 
   return (

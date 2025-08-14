@@ -3,6 +3,16 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * API Keys Management Route
+ * 
+ * Handles secure API key operations:
+ * - JWT authentication required for all operations
+ * - AES-256 encryption for API key storage
+ * - User-specific API key management (users can only access their own keys)
+ * - CRUD operations: create, read, update, delete API keys
+ */
+
 const JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 
@@ -282,6 +292,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Name and API key are required' },
         { status: 400 }
+      );
+    }
+
+    // Security check: Ensure ENCRYPTION_KEY is properly configured
+    if (!ENCRYPTION_KEY || ENCRYPTION_KEY === 'your-32-char-encryption-key-here!!') {
+      console.log('ENCRYPTION_KEY is not properly configured');
+      return NextResponse.json(
+        { error: 'Server configuration error - encryption key not properly configured' },
+        { status: 500 }
       );
     }
     

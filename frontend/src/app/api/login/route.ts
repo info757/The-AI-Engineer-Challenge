@@ -3,6 +3,16 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * User Authentication Route
+ * 
+ * Handles secure user authentication:
+ * - Password hashing with bcrypt
+ * - JWT token generation for authenticated sessions
+ * - User validation against Supabase database
+ * - Secure error handling (no information leakage)
+ */
+
 const JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'your-secret-key';
 
 // Create Supabase client conditionally

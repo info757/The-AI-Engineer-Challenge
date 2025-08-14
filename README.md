@@ -12,7 +12,7 @@
 
 ### ✨ **What Makes This App Special**
 
-🎯 **Dual-Mode Operation** - Demo mode (shared API key) OR personal API key for full control  
+🎯 **Secure Authentication** - User registration and login required for all features  
 🤖 **AI Model Selection** - Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo  
 🎭 **AI Personality Templates** - Pre-built personalities (Code Expert, Creative Writer, Math Tutor, etc.)  
 🌙 **Dark/Light Mode** - Beautiful theme switching with smooth transitions  
@@ -27,9 +27,17 @@
 
 ## 🚀 **Live Demo**
 
-**Try it now:** [https://the-ai-engineer-challenge-zeta-navy.vercel.app/](https://the-ai-engineer-challenge-zeta-navy.vercel.app/)
+**Try it now:** [https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/](https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/)
 
-No setup required - just start chatting! 🎉
+**Features:**
+- 🔐 **Secure Authentication** - Register and login required
+- 🔑 **Personal API Keys** - Add and manage your own OpenAI API keys
+- 🤖 **AI Chat** - Multiple models (GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
+- 🎭 **AI Personalities** - Choose from 6 different AI personalities
+- 🌙 **Dark/Light Mode** - Beautiful theme switching
+- 📱 **Mobile Ready** - Works perfectly on all devices
+
+No setup required - just register, add your API key, and start chatting! 🎉
 
 ---
 
@@ -156,10 +164,11 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 ## 🎯 **Features Deep Dive**
 
 ### **🤖 Advanced AI Chat**
-- **Dual-Mode Operation**: Demo mode (no API key) OR personal API key for privacy
+- **Secure Authentication**: User registration and login required for all features
+- **Personal API Keys**: Add and manage your own OpenAI API keys with AES-256 encryption
 - **Model Selection**: Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo
 - **AI Personality Templates**: Quick-select from Code Expert, Creative Writer, Math Tutor, Business Advisor, Parent, or create custom
-- **Smart Fallback**: Automatic mode detection and switching
+- **Rate Limiting**: 10 requests per minute per user to prevent abuse
 
 ### **🎨 Beautiful User Interface**
 - **Dark/Light Theme**: Toggle between themes with smooth transitions
@@ -169,8 +178,10 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 - **Responsive Design**: Perfect on desktop, tablet, and mobile
 
 ### **🔒 Security & Privacy**
-- **Password Fields**: Secure API key input
-- **No Key Storage**: API keys never stored on server
+- **AES-256 Encryption**: All API keys are encrypted before storage
+- **JWT Authentication**: Secure token-based user authentication
+- **Rate Limiting**: 10 requests per minute per user
+- **User Isolation**: Users can only access their own data
 - **HTTPS Only**: All communication encrypted
 - **Environment Variables**: Secure configuration management
 
@@ -179,9 +190,10 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 ## 🚀 **Quick Start**
 
 ### **Option 1: Try the Live Demo**
-1. Visit [https://the-ai-engineer-challenge-zeta-navy.vercel.app/](https://the-ai-engineer-challenge-zeta-navy.vercel.app/)
-2. Click "Demo Mode" in settings
-3. Start chatting! 🎉
+1. Visit [https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/](https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/)
+2. Register for an account
+3. Add your OpenAI API key
+4. Start chatting! 🎉
 
 ### **Option 2: Run Locally**
 
@@ -218,10 +230,13 @@ Visit `http://localhost:3000` and start chatting! 🚀
 
 ### **Environment Variables**
 
-For demo mode to work, set these in your Vercel dashboard:
+For the application to work, set these in your Vercel dashboard:
 
 ```bash
-OPENAI_API_KEY=sk-your-openai-api-key-here
+SUPABASE_JWT_SECRET=your-secure-jwt-secret
+ENCRYPTION_KEY=2ea25d21ed9b5618ff05a6dcf0bdc81f0b88b1f9e257dd2ea504d713a73a6f44
+SUPABASE_URL=your-supabase-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 ### **API Endpoints**

@@ -4,6 +4,17 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * AI Chat API Route
+ * 
+ * Handles secure AI chat functionality with:
+ * - JWT authentication required for all requests
+ * - Rate limiting (10 requests per minute per user)
+ * - Personal API key decryption and usage
+ * - Multiple AI model support (GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
+ * - Streaming responses for real-time chat experience
+ */
+
 // Simple in-memory rate limiting (in production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -47,6 +58,12 @@ function decrypt(encryptedText: string): string {
 // Helper function to get user ID from token
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
+    // Security check: Ensure JWT_SECRET is properly configured
+    if (!JWT_SECRET || JWT_SECRET === 'your-secret-key') {
+      console.error('JWT_SECRET is not properly configured');
+      return null;
+    }
+
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return null;
@@ -157,8 +174,16 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Decrypt the API key
-      openaiApiKey = decrypt(apiKeyRecord.encrypted_key);
+          // Security check: Ensure ENCRYPTION_KEY is properly configured
+    if (!ENCRYPTION_KEY || ENCRYPTION_KEY === 'your-32-char-encryption-key-here!!') {
+      return NextResponse.json(
+        { error: 'Server configuration error - encryption key not properly configured' },
+        { status: 500 }
+      );
+    }
+
+    // Decrypt the API key
+    openaiApiKey = decrypt(apiKeyRecord.encrypted_key);
     } else {
       // Demo mode - still requires authentication
       if (!DEMO_OPENAI_API_KEY) {
@@ -206,8 +231,11 @@ export async function POST(request: NextRequest) {
     return new Response(readableStream, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Connection': 'keep-alive',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
       },
     });
 
