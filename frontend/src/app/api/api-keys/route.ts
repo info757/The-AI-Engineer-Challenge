@@ -232,6 +232,22 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    if (!process.env.ENCRYPTION_KEY) {
+      console.log('ENCRYPTION_KEY environment variable is missing');
+      return NextResponse.json(
+        { error: 'Server configuration error - encryption key missing' },
+        { status: 500 }
+      );
+    }
+    
+    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+      console.log('Supabase environment variables missing');
+      return NextResponse.json(
+        { error: 'Server configuration error - database not configured' },
+        { status: 500 }
+      );
+    }
+    
     const userId = getUserIdFromToken(request);
     console.log('User ID:', userId);
     
@@ -251,10 +267,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log('Parsing request body...');
     const body = await request.json();
     console.log('Request body:', body);
     
     const { name, apiKey } = body;
+    console.log('Extracted name:', name);
+    console.log('Extracted apiKey (first 10 chars):', apiKey ? apiKey.substring(0, 10) + '...' : 'EMPTY');
 
     if (!name || !apiKey) {
       console.log('Missing required fields - name:', !!name, 'apiKey:', !!apiKey);
@@ -267,7 +286,9 @@ export async function POST(request: NextRequest) {
     console.log('All required fields present');
 
     // Encrypt the API key
+    console.log('Starting encryption...');
     const encryptedKey = encrypt(apiKey);
+    console.log('Encryption completed');
 
     // Save to Supabase
     console.log('Attempting to save API key to database...');
@@ -293,8 +314,15 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Create API key error:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      },
       { status: 500 }
     );
   }
