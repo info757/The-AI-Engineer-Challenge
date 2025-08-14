@@ -281,7 +281,7 @@ The app uses Tailwind CSS with custom gradients and animations. Modify colors in
 
 ## 🤝 **Contributing**
 
-This project was built for the AI Engineer Challenge. Feel free to fork and enhance!
+This project was built for the AI Engineer Challenge. 
 
 ### **Development Workflow**
 1. Fork the repository
