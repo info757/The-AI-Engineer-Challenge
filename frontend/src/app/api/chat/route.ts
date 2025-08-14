@@ -135,17 +135,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Require authentication for all requests
+    // Get user ID from JWT token (optional for demo mode)
     const userId = getUserIdFromToken(request);
-    if (!userId) {
+    
+    // If using personal API key, authentication is required
+    if (api_key_id && !userId) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: 'Authentication required for personal API keys' },
         { status: 401 }
       );
     }
 
-    // Check rate limit
-    if (!checkRateLimit(userId)) {
+    // Check rate limit (use IP or session-based rate limiting for demo mode)
+    if (userId && !checkRateLimit(userId)) {
       return NextResponse.json(
         { error: 'Rate limit exceeded. Please try again later.' },
         { status: 429 }
@@ -185,7 +187,7 @@ export async function POST(request: NextRequest) {
     // Decrypt the API key
     openaiApiKey = decrypt(apiKeyRecord.encrypted_key);
     } else {
-      // Demo mode - still requires authentication
+      // Demo mode - no authentication required
       if (!DEMO_OPENAI_API_KEY) {
         return NextResponse.json(
           { error: 'Demo mode not available' },

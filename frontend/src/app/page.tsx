@@ -808,13 +808,13 @@ export default function Home() {
                     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
                     : 'bg-white border-gray-300 placeholder-gray-500'
                 }`}
-                disabled={isLoading || !isAuthenticated}
+                disabled={isLoading || (!isAuthenticated && !demoMode)}
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim() || !isAuthenticated}
+                disabled={isLoading || !input.trim() || (!isAuthenticated && !demoMode)}
                                   className={`px-4 py-3 rounded-lg font-medium transition-colors ${
-                    isLoading || !input.trim() || !isAuthenticated
+                    isLoading || !input.trim() || (!isAuthenticated && !demoMode)
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
