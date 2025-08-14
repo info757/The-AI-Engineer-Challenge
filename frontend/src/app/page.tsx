@@ -537,11 +537,14 @@ export default function Home() {
                     onClick={async () => {
                       console.log('=== Testing API Keys Route ===');
                       try {
-                        const response = await fetch('/api/api-keys');
+                        const response = await fetch('/api/api-keys', {
+                          headers: { 'Authorization': `Bearer ${authToken}` },
+                        });
                         const data = await response.json();
                         console.log('API Keys Route Test Response:', data);
-                        if (data.message) {
+                        if (data.apiKeys !== undefined) {
                           setError(null);
+                          console.log('API Keys Route working - found', data.apiKeys.length, 'keys');
                         } else {
                           setError(`API Keys Route Test Failed: ${data.error}`);
                         }
@@ -552,7 +555,7 @@ export default function Home() {
                     }}
                     className="w-full p-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mt-2"
                   >
-                    Test API Keys Route
+                    Test API Keys Route (with auth)
                   </button>
                 </div>
               </div>
