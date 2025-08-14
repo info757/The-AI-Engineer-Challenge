@@ -58,14 +58,14 @@ function decrypt(encryptedText: string): string {
 // Helper function to get user ID from token
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
-    // Security check: Ensure JWT_SECRET is properly configured
-    if (!JWT_SECRET || JWT_SECRET === 'your-secret-key') {
-      console.error('JWT_SECRET is not properly configured');
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return null;
     }
 
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // Security check: Ensure JWT_SECRET is properly configured
+    if (!JWT_SECRET || JWT_SECRET === 'your-secret-key') {
+      // Don't log error for demo mode requests without auth header
       return null;
     }
 
