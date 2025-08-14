@@ -175,7 +175,7 @@ export default function Home() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
-        body: JSON.stringify({ api_key: apiKey, key_name: keyName }),
+        body: JSON.stringify({ apiKey: apiKey, name: keyName }),
       });
 
       if (response.ok) {
