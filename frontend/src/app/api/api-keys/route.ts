@@ -37,15 +37,32 @@ function encrypt(text: string): string {
 // Helper function to get user ID from token
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
+    console.log('=== JWT Token Validation ===');
     const authHeader = request.headers.get('authorization');
+    console.log('Auth header exists:', !!authHeader);
+    console.log('Auth header starts with Bearer:', authHeader?.startsWith('Bearer '));
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('Invalid auth header format');
       return null;
     }
 
     const token = authHeader.substring(7);
+    console.log('Token length:', token.length);
+    console.log('Token starts with:', token.substring(0, 20) + '...');
+    console.log('JWT_SECRET exists:', !!JWT_SECRET);
+    console.log('JWT_SECRET length:', JWT_SECRET?.length);
+    
+    if (!JWT_SECRET || JWT_SECRET === 'your-secret-key') {
+      console.log('JWT_SECRET is not properly configured');
+      return null;
+    }
+    
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+    console.log('Token decoded successfully, userId:', decoded.userId);
     return decoded.userId;
-  } catch {
+  } catch (error) {
+    console.log('JWT verification failed:', error);
     return null;
   }
 }
@@ -205,6 +222,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('=== API Key Creation Request ===');
+    
+    // Check environment variables first
+    if (!process.env.SUPABASE_JWT_SECRET) {
+      console.log('SUPABASE_JWT_SECRET environment variable is missing');
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+    
     const userId = getUserIdFromToken(request);
     console.log('User ID:', userId);
     

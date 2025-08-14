@@ -435,9 +435,10 @@ export default function Home() {
             {/* API Key Management - only show if authenticated and not in demo mode */}
             {!demoMode && isAuthenticated && (
               <div>
-                <label className="block font-medium mb-2">Your API Keys</label>
+                <label htmlFor="api-keys-select" className="block font-medium mb-2">Your API Keys</label>
                 {userAPIKeys.length > 0 ? (
                   <select
+                    id="api-keys-select"
                     value={selectedAPIKeyId || ''}
                     onChange={(e) => setSelectedAPIKeyId(e.target.value)}
                     className={`w-full p-2 border rounded-lg ${
@@ -458,16 +459,24 @@ export default function Home() {
                 
                 {/* Add new API key form */}
                 <div className="mt-3 space-y-2">
+                  <label htmlFor="new-api-key" className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    API Key
+                  </label>
                   <input
                     type="password"
+                    name="api-key"
                     placeholder="sk-... (new API key)"
                     id="new-api-key"
                     className={`w-full p-2 border rounded-lg ${
                       darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
                     }`}
                   />
+                  <label htmlFor="key-name" className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Key Name (optional)
+                  </label>
                   <input
                     type="text"
+                    name="key-name"
                     placeholder="Key name (optional)"
                     id="key-name"
                     className={`w-full p-2 border rounded-lg ${
@@ -476,17 +485,51 @@ export default function Home() {
                   />
                   <button
                     onClick={() => {
+                      console.log('=== Button Click Handler ===');
                       const newKey = (document.getElementById('new-api-key') as HTMLInputElement)?.value;
                       const keyName = (document.getElementById('key-name') as HTMLInputElement)?.value || 'Default';
+                      
+                      console.log('Captured API key (first 10 chars):', newKey ? newKey.substring(0, 10) + '...' : 'EMPTY');
+                      console.log('Captured key name:', keyName);
+                      console.log('API key exists:', !!newKey);
+                      
                       if (newKey) {
+                        console.log('Calling addAPIKey function...');
                         addAPIKey(newKey, keyName);
                         (document.getElementById('new-api-key') as HTMLInputElement).value = '';
                         (document.getElementById('key-name') as HTMLInputElement).value = '';
+                      } else {
+                        console.log('No API key provided - not calling addAPIKey');
                       }
                     }}
                     className="w-full p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     Add API Key
+                  </button>
+                  
+                  {/* Test JWT Button */}
+                  <button
+                    onClick={async () => {
+                      console.log('=== Testing JWT Token ===');
+                      try {
+                        const response = await fetch('/api/test-jwt', {
+                          headers: { 'Authorization': `Bearer ${authToken}` },
+                        });
+                        const data = await response.json();
+                        console.log('JWT Test Response:', data);
+                        if (data.success) {
+                          setError(null);
+                        } else {
+                          setError(`JWT Test Failed: ${data.error}`);
+                        }
+                      } catch (error) {
+                        console.error('JWT Test Error:', error);
+                        setError('JWT Test Error: ' + error);
+                      }
+                    }}
+                    className="w-full p-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mt-2"
+                  >
+                    Test JWT Token
                   </button>
                 </div>
               </div>
