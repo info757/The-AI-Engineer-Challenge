@@ -219,6 +219,14 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('=== Form Submit Debug ===');
+    console.log('Input:', input.trim());
+    console.log('Is Loading:', isLoading);
+    console.log('Is Authenticated:', isAuthenticated);
+    console.log('Demo Mode:', demoMode);
+    console.log('Input disabled:', isLoading || (!isAuthenticated && !demoMode));
+    console.log('Button disabled:', isLoading || !input.trim() || (!isAuthenticated && !demoMode));
+    
     if (!input.trim() || isLoading) return;
 
     // Check if user is authenticated (required for both demo and personal mode)
@@ -266,7 +274,8 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const reader = response.body?.getReader();
@@ -306,7 +315,7 @@ export default function Home() {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: `Error: ${error instanceof Error ? error.message : 'Unknown error occurred'}`,
         timestamp: new Date(),
         reactions: { thumbsUp: false, thumbsDown: false }
       }]);
