@@ -229,9 +229,9 @@ export default function Home() {
     
     if (!input.trim() || isLoading) return;
 
-    // Check if user is authenticated (required for both demo and personal mode)
-    if (!isAuthenticated) {
-      setError('Please log in to chat');
+    // Check if user is authenticated (only required for personal mode, not demo mode)
+    if (!isAuthenticated && !demoMode) {
+      setError('Please log in to use personal API keys');
       return;
     }
 
