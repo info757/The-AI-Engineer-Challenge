@@ -27,7 +27,7 @@
 
 ## 🚀 **Live Demo**
 
-**Try it now:** [https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/](https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/)
+**Try it now:** [https://the-ai-engineer-challenge-zeta-navy.vercel.app/](https://the-ai-engineer-challenge-zeta-navy.vercel.app/)
 
 **Features:**
 - 🚀 **Instant Demo Mode** - Try AI chat immediately, no registration required!
@@ -193,7 +193,7 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 ## 🚀 **Quick Start**
 
 ### **Option 1: Try the Live Demo**
-1. Visit [https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/](https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/)
+1. Visit [https://the-ai-engineer-challenge-zeta-navy.vercel.app/](https://the-ai-engineer-challenge-zeta-navy.vercel.app/)
 2. **Start chatting instantly in demo mode!** 🚀
 3. **Optional**: Register for an account to use your own API keys
 4. **Optional**: Add your OpenAI API key for personal mode
