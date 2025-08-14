@@ -22,10 +22,9 @@ interface User {
 
 interface APIKey {
   id: string;
-  key_name: string;
-  is_active: boolean;
+  name: string;
   created_at: string;
-  last_used?: string;
+  updated_at: string;
 }
 
 export default function Home() {
@@ -156,7 +155,8 @@ export default function Home() {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
-        const keys = await response.json();
+        const data = await response.json();
+        const keys = data.apiKeys || [];
         setUserAPIKeys(keys);
         if (keys.length > 0) {
           setSelectedAPIKeyId(keys[0].id);
@@ -434,7 +434,7 @@ export default function Home() {
                   >
                     {userAPIKeys.map((key) => (
                       <option key={key.id} value={key.id}>
-                        {key.key_name} (Last used: {key.last_used ? new Date(key.last_used).toLocaleDateString() : 'Never'})
+                        {key.name} (Created: {new Date(key.created_at).toLocaleDateString()})
                       </option>
                     ))}
                   </select>
