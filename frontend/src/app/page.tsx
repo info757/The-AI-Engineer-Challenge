@@ -260,8 +260,8 @@ export default function Home() {
           message: input.trim(),
           model: selectedModel,
           system_message: systemMessage,
-          demo_mode: demoMode,
-          api_key_id: demoMode ? undefined : selectedAPIKeyId
+          demo_mode: !isAuthenticated || demoMode,
+          api_key_id: (!isAuthenticated || demoMode) ? undefined : selectedAPIKeyId
         }),
       });
 
