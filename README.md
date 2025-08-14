@@ -12,15 +12,15 @@
 
 ### ✨ **What Makes This App Special**
 
-🎯 **Secure Authentication** - User registration and login required for all features  
+🎯 **Dual-Mode Operation** - Try demo mode instantly OR register for personal API key management  
 🤖 **AI Model Selection** - Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo  
-🎭 **AI Personality Templates** - Pre-built personalities (Code Expert, Creative Writer, Math Tutor, etc.)  
+🎭 **AI Personality Templates** - Pre-built personalities (Helpful Assistant, Coding Expert, Creative Writer, Therapist, Medical Advice)  
 🌙 **Dark/Light Mode** - Beautiful theme switching with smooth transitions  
 👍👎 **Message Reactions** - Thumbs up/down on AI responses  
 📋 **Copy to Clipboard** - One-click message copying  
 ✨ **Animated Typing** - Real-time streaming with bouncing dots  
 🎨 **Modern UI/UX** - Gradient backgrounds, smooth animations, responsive design  
-🔒 **Secure** - Authentication required, rate-limited, encrypted API keys  
+🔒 **Secure** - Optional authentication, rate-limited, encrypted API keys  
 📱 **Mobile Ready** - Works perfectly on all devices  
 
 ---
@@ -30,14 +30,17 @@
 **Try it now:** [https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/](https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/)
 
 **Features:**
-- 🔐 **Secure Authentication** - Register and login required
-- 🔑 **Personal API Keys** - Add and manage your own OpenAI API keys
+- 🚀 **Instant Demo Mode** - Try AI chat immediately, no registration required!
+- 🔐 **Optional Authentication** - Register to manage your own API keys
+- 🔑 **Personal API Keys** - Add and manage your own OpenAI API keys securely
 - 🤖 **AI Chat** - Multiple models (GPT-4o, GPT-4o-mini, GPT-3.5-turbo)
-- 🎭 **AI Personalities** - Choose from 6 different AI personalities
+- 🎭 **AI Personalities** - Choose from 5 different AI personalities
 - 🌙 **Dark/Light Mode** - Beautiful theme switching
 - 📱 **Mobile Ready** - Works perfectly on all devices
 
-No setup required - just register, add your API key, and start chatting! 🎉
+**Two ways to use:**
+1. **Demo Mode** - Start chatting instantly with shared API key! 🎉
+2. **Personal Mode** - Register, add your API key, and chat with your own setup! 🔑
 
 ---
 
@@ -104,16 +107,16 @@ npm run dev
 ### **Test the Application**
 1. Backend API: http://localhost:8000/docs
 2. Frontend: http://localhost:3000
-3. Demo mode works with shared API key (requires login)!
+3. Demo mode works instantly - no login required! 🚀
 
 ---
 
 ## 🔒 **Security Features**
 
 ### **Authentication & Authorization**
-- **Required Login**: All chat functionality now requires user authentication
-- **JWT Tokens**: Secure token-based authentication
-- **User Isolation**: Users can only access their own API keys and data
+- **Optional Login**: Demo mode works without authentication, personal mode requires login
+- **JWT Tokens**: Secure token-based authentication for registered users
+- **User Isolation**: Registered users can only access their own API keys and data
 
 ### **Rate Limiting**
 - **10 requests per minute** per user to prevent abuse
@@ -164,7 +167,7 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 ## 🎯 **Features Deep Dive**
 
 ### **🤖 Advanced AI Chat**
-- **Secure Authentication**: User registration and login required for all features
+- **Dual-Mode Operation**: Demo mode for instant access, personal mode for API key management
 - **Personal API Keys**: Add and manage your own OpenAI API keys with AES-256 encryption
 - **Model Selection**: Choose between GPT-4o, GPT-4o-mini, and GPT-3.5-turbo
 - **AI Personality Templates**: Quick-select from Code Expert, Creative Writer, Math Tutor, Business Advisor, Parent, or create custom
@@ -191,9 +194,9 @@ SUPABASE_ANON_KEY=your-supabase-anon-key
 
 ### **Option 1: Try the Live Demo**
 1. Visit [https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/](https://the-ai-engineer-challenge-5uoml0k9b-wills-projects-30b9f5a9.vercel.app/)
-2. Register for an account
-3. Add your OpenAI API key
-4. Start chatting! 🎉
+2. **Start chatting instantly in demo mode!** 🚀
+3. **Optional**: Register for an account to use your own API keys
+4. **Optional**: Add your OpenAI API key for personal mode
 
 ### **Option 2: Run Locally**
 
@@ -256,13 +259,12 @@ The app uses Tailwind CSS with custom gradients and animations. Modify colors in
 
 ### **AI Behavior**
 - **Model Selection**: Choose the best AI model for your needs (speed vs. capability vs. cost)
-- **Personality Templates**: Quick-select from 6 pre-built AI personalities:
+- **Personality Templates**: Quick-select from 5 pre-built AI personalities:
   - **Helpful Assistant** - General purpose support
   - **Creative Writer** - Storytelling and creative content
   - **Code Expert** - Programming and technical help
-  - **Math Tutor** - Step-by-step problem solving
-  - **Business Advisor** - Strategic business advice
-  - **Parent** - Caring, supportive guidance and life advice
+  - **Therapist** - Supportive conversational partner
+  - **Medical Advice (Not a Doctor)** - Health information with proper disclaimers
 - **Custom System Messages**: Create your own AI personality and behavior
 - **Real-time Streaming**: See AI responses as they're generated
 
