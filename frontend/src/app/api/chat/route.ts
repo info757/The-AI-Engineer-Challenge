@@ -59,20 +59,24 @@ function decrypt(encryptedText: string): string {
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
     const authHeader = request.headers.get('authorization');
+    console.log('Auth header present:', !!authHeader);
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('No valid auth header found');
       return null;
     }
 
     // Security check: Ensure JWT_SECRET is properly configured
     if (!JWT_SECRET || JWT_SECRET === 'your-secret-key') {
-      // Don't log error for demo mode requests without auth header
+      console.log('JWT_SECRET not properly configured');
       return null;
     }
 
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+    console.log('JWT token verified successfully');
     return decoded.userId;
-  } catch {
+  } catch (error) {
+    console.log('JWT verification failed:', error);
     return null;
   }
 }
@@ -126,7 +130,9 @@ async function getAPIKeyById(id: string): Promise<APIKey | null> {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Chat API Request ===');
     const { message, api_key_id, model = 'gpt-4o-mini', system_message = 'You are a helpful AI assistant.', demo_mode } = await request.json();
+    console.log('Request data:', { message: message?.substring(0, 50) + '...', api_key_id, model, demo_mode });
 
     if (!message) {
       return NextResponse.json(
@@ -137,9 +143,13 @@ export async function POST(request: NextRequest) {
 
     // Get user ID from JWT token (optional for demo mode)
     const userId = getUserIdFromToken(request);
+    console.log('User ID from token:', userId ? 'Found' : 'Not found');
+    console.log('API key ID:', api_key_id);
+    console.log('Demo mode:', demo_mode);
     
     // If using personal API key, authentication is required
     if (api_key_id && !userId) {
+      console.log('Error: Personal API key requires authentication');
       return NextResponse.json(
         { error: 'Authentication required for personal API keys' },
         { status: 401 }
@@ -188,13 +198,17 @@ export async function POST(request: NextRequest) {
     openaiApiKey = decrypt(apiKeyRecord.encrypted_key);
     } else {
       // Demo mode - no authentication required
+      console.log('Using demo mode');
+      console.log('DEMO_OPENAI_API_KEY exists:', !!DEMO_OPENAI_API_KEY);
       if (!DEMO_OPENAI_API_KEY) {
+        console.log('Error: Demo mode not available - no OPENAI_API_KEY');
         return NextResponse.json(
           { error: 'Demo mode not available' },
           { status: 500 }
         );
       }
       openaiApiKey = DEMO_OPENAI_API_KEY;
+      console.log('Demo mode API key configured');
     }
 
     // Initialize OpenAI client
