@@ -169,20 +169,32 @@ export default function Home() {
 
   const addAPIKey = async (apiKey: string, keyName: string = 'Default') => {
     try {
+      console.log('=== Frontend: Adding API Key ===');
+      console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
+      console.log('Key Name:', keyName);
+      console.log('Auth Token exists:', !!authToken);
+      
+      const requestBody = { apiKey: apiKey, name: keyName };
+      console.log('Request body:', requestBody);
+      
       const response = await fetch('/api/api-keys', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
-        body: JSON.stringify({ apiKey: apiKey, name: keyName }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
+        console.log('API key added successfully');
         await fetchUserAPIKeys(authToken!);
         setError(null);
       } else {
         const errorData = await response.json();
+        console.log('Error response:', errorData);
         setError(errorData.error || 'Failed to add API key');
       }
     } catch (_error) {
