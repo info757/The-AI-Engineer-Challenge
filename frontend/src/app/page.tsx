@@ -248,8 +248,8 @@ export default function Home() {
         'Content-Type': 'application/json',
       };
 
-      // Add authorization header for all requests (required for both demo and personal mode)
-      if (authToken) {
+      // Add authorization header only for personal mode (not demo mode)
+      if (authToken && !demoMode) {
         headers['Authorization'] = `Bearer ${authToken}`;
       }
 
