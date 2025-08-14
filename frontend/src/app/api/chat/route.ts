@@ -9,7 +9,7 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.SUPABASE_JWT_SECRET || 'your-secret-key';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'your-32-char-encryption-key-here!!';
 const DEMO_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -107,7 +107,7 @@ async function getAPIKeyById(id: string): Promise<APIKey | null> {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, api_key_id, model = 'gpt-4o-mini', systemMessage = 'You are a helpful AI assistant.' } = await request.json();
+    const { message, api_key_id, model = 'gpt-4o-mini', system_message = 'You are a helpful AI assistant.', demo_mode } = await request.json();
 
     if (!message) {
       return NextResponse.json(
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
     const stream = await openai.chat.completions.create({
       model: model,
       messages: [
-        { role: 'system', content: systemMessage },
+        { role: 'system', content: system_message },
         { role: 'user', content: message }
       ],
       stream: true,
