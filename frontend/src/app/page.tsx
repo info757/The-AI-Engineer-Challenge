@@ -252,6 +252,7 @@ export default function Home() {
     setIsTyping(true);
 
     try {
+      console.log('=== Starting API Call ===');
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -261,20 +262,33 @@ export default function Home() {
         headers['Authorization'] = `Bearer ${authToken}`;
       }
 
+      const requestBody = {
+        message: input.trim(),
+        model: selectedModel,
+        system_message: systemMessage,
+        demo_mode: !isAuthenticated || demoMode,
+        api_key_id: (!isAuthenticated || demoMode) ? undefined : selectedAPIKeyId
+      };
+
+      console.log('Request headers:', headers);
+      console.log('Request body:', requestBody);
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          message: input.trim(),
-          model: selectedModel,
-          system_message: systemMessage,
-          demo_mode: !isAuthenticated || demoMode,
-          api_key_id: (!isAuthenticated || demoMode) ? undefined : selectedAPIKeyId
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        console.log('Response not ok, trying to get error data...');
+        const errorData = await response.json().catch((e) => {
+          console.log('Failed to parse error response:', e);
+          return {};
+        });
+        console.log('Error data:', errorData);
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
