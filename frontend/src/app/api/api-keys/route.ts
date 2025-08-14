@@ -359,3 +359,27 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+// Simple test function to check if route is accessible
+export async function GET(request: NextRequest) {
+  try {
+    console.log('=== API Keys Route Test ===');
+    console.log('Route is accessible');
+    console.log('JWT_SECRET exists:', !!JWT_SECRET);
+    console.log('ENCRYPTION_KEY exists:', !!ENCRYPTION_KEY);
+    console.log('Supabase client exists:', !!supabase);
+    
+    return NextResponse.json({
+      message: 'API Keys route is working',
+      jwtSecretExists: !!JWT_SECRET,
+      encryptionKeyExists: !!ENCRYPTION_KEY,
+      supabaseExists: !!supabase
+    });
+  } catch (error) {
+    console.error('GET test error:', error);
+    return NextResponse.json({
+      error: 'Route test failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}

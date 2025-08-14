@@ -531,6 +531,29 @@ export default function Home() {
                   >
                     Test JWT Token
                   </button>
+                  
+                  {/* Test API Keys Route Button */}
+                  <button
+                    onClick={async () => {
+                      console.log('=== Testing API Keys Route ===');
+                      try {
+                        const response = await fetch('/api/api-keys');
+                        const data = await response.json();
+                        console.log('API Keys Route Test Response:', data);
+                        if (data.message) {
+                          setError(null);
+                        } else {
+                          setError(`API Keys Route Test Failed: ${data.error}`);
+                        }
+                      } catch (error) {
+                        console.error('API Keys Route Test Error:', error);
+                        setError('API Keys Route Test Error: ' + error);
+                      }
+                    }}
+                    className="w-full p-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors mt-2"
+                  >
+                    Test API Keys Route
+                  </button>
                 </div>
               </div>
             )}
