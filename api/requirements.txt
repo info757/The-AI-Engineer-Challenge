@@ -19,3 +19,7 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 # Environment variable management
 python-dotenv==1.0.0
+# PDF processing for RAG system
+PyPDF2==3.0.1
+# NumPy for vector operations
+numpy==1.24.3

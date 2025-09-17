@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User, LogOut } from 'lucide-react';
+import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User, LogOut, FileText, Database } from 'lucide-react';
+import PDFUpload from '../components/PDFUpload';
+import RAGStatus from '../components/RAGStatus';
 
 /**
  * Main AI Chat Application Component
@@ -62,6 +64,11 @@ export default function Home() {
   const [userAPIKeys, setUserAPIKeys] = useState<APIKey[]>([]);
   const [selectedAPIKeyId, setSelectedAPIKeyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // RAG-related state
+  const [ragStatus, setRagStatus] = useState<any>(null);
+  const [useRAGMode, setUseRAGMode] = useState(false);
+  const [showPDFUpload, setShowPDFUpload] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -147,6 +154,9 @@ export default function Home() {
     setUserAPIKeys([]);
     setSelectedAPIKeyId(null);
     setMessages([]);
+    setRagStatus(null);
+    setUseRAGMode(false);
+    setShowPDFUpload(false);
     setDemoMode(true); // Switch back to demo mode
   };
 
@@ -273,7 +283,10 @@ export default function Home() {
       console.log('Request headers:', headers);
       console.log('Request body:', requestBody);
 
-      const response = await fetch('/api/chat', {
+      // Choose endpoint based on RAG mode
+      const endpoint = useRAGMode ? '/api/chat-rag' : '/api/chat';
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestBody),
@@ -345,6 +358,26 @@ export default function Home() {
       // You could add a toast notification here
     } catch (err) {
       console.error('Failed to copy text: ', err);
+    }
+  };
+
+  // RAG-related functions
+  const handlePDFUploadSuccess = (result: any) => {
+    console.log('PDF upload successful:', result);
+    setShowPDFUpload(false);
+    // Refresh RAG status will be handled by the RAGStatus component
+  };
+
+  const handlePDFUploadError = (error: string) => {
+    console.error('PDF upload error:', error);
+    setError(error);
+  };
+
+  const handleRAGStatusChange = (status: any) => {
+    setRagStatus(status);
+    // Auto-enable RAG mode if documents are uploaded
+    if (status.rag_initialized && !useRAGMode) {
+      setUseRAGMode(true);
     }
   };
 
@@ -594,6 +627,8 @@ export default function Home() {
               <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">
                 Current: {systemMessage}
               </div>
+            </div>
+
               <textarea
                 value={systemMessage}
                 onChange={(e) => setSystemMessage(e.target.value)}
@@ -604,6 +639,62 @@ export default function Home() {
                 placeholder="Enter a custom system message..."
               />
             </div>
+
+            {/* RAG System Section */}
+            {isAuthenticated && (
+              <div className="space-y-4">
+                <div className="border-t pt-4">
+                  <h3 className={`text-lg font-semibold mb-4 flex items-center ${
+                    darkMode ? 'text-gray-200' : 'text-gray-900'
+                  }`}>
+                    <Database className="h-5 w-5 mr-2" />
+                    RAG System (PDF Chat)
+                  </h3>
+                  
+                  {/* RAG Mode Toggle */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <label className="font-medium">RAG Mode</label>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Chat with uploaded PDF documents using retrieval-augmented generation
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setUseRAGMode(!useRAGMode)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        useRAGMode ? 'bg-green-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        useRAGMode ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
+
+                  {/* RAG Status */}
+                  <RAGStatus 
+                    authToken={authToken}
+                    darkMode={darkMode}
+                    onStatusChange={handleRAGStatusChange}
+                  />
+
+                  {/* PDF Upload Button */}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setShowPDFUpload(!showPDFUpload)}
+                      className={`w-full p-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
+                        darkMode
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      <FileText className="h-4 w-4" />
+                      <span>{showPDFUpload ? 'Hide PDF Upload' : 'Upload PDF Document'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -700,6 +791,32 @@ export default function Home() {
                 {isLogin ? "Don't have an account? Register" : "Already have an account? Login"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PDF Upload Modal */}
+      {showPDFUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Upload PDF Document
+              </h2>
+              <button
+                onClick={() => setShowPDFUpload(false)}
+                className={`p-1 rounded ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
+              >
+                ✕
+              </button>
+            </div>
+            
+            <PDFUpload
+              onUploadSuccess={handlePDFUploadSuccess}
+              onUploadError={handlePDFUploadError}
+              authToken={authToken}
+              darkMode={darkMode}
+            />
           </div>
         </div>
       )}
@@ -809,6 +926,25 @@ export default function Home() {
             <div ref={messagesEndRef} />
           </div>
 
+          {/* RAG Mode Indicator */}
+          {useRAGMode && (
+            <div className={`border-t px-4 py-2 transition-colors duration-300 ${
+              darkMode ? 'border-gray-700 bg-green-900/20' : 'border-gray-200 bg-green-50'
+            }`}>
+              <div className="flex items-center space-x-2">
+                <Database className={`h-4 w-4 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                <span className={`text-sm font-medium ${darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                  RAG Mode Active - Chatting with uploaded PDF
+                </span>
+                {ragStatus && ragStatus.rag_initialized && (
+                  <span className={`text-xs ${darkMode ? 'text-green-300' : 'text-green-500'}`}>
+                    ({ragStatus.total_chunks} chunks available)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Input Form */}
           <div className={`border-t p-4 transition-colors duration-300 ${
             darkMode ? 'border-gray-700' : 'border-gray-200'
@@ -824,7 +960,7 @@ export default function Home() {
                     handleSubmit(e);
                   }
                 }}
-                placeholder="Type your message..."
+                placeholder={useRAGMode ? "Ask questions about your uploaded PDF..." : "Type your message..."}
                 rows={1}
                 className={`flex-1 p-3 border rounded-lg resize-none transition-colors duration-300 ${
                   darkMode 

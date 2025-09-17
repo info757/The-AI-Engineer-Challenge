@@ -1,6 +1,6 @@
 # Import required FastAPI components for building the API
 import sys
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -12,9 +12,13 @@ from auth import verify_password, get_password_hash, create_access_token, verify
 # Import OpenAI client for interacting with OpenAI's API
 from openai import OpenAI
 import os
+import tempfile
+import shutil
 from typing import Optional, AsyncGenerator, Dict, List
 from sqlalchemy.orm import Session
 from datetime import datetime
+# Import RAG service
+from rag_service import get_rag_service
 
 # Get the default API key from environment variable (for demo mode)
 DEFAULT_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -344,6 +348,187 @@ async def chat_demo(request: ChatRequest) -> StreamingResponse:
         print(f"Error type: {type(e)}")
         import traceback
         print(f"Full traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# PDF Upload endpoint
+@app.post("/api/upload-pdf")
+async def upload_pdf(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload and process a PDF file for RAG system"""
+    try:
+        # Validate file type
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        
+        # Get user's API key for RAG processing
+        user_api_key = db.query(UserAPIKey).filter(
+            UserAPIKey.user_id == current_user.id,
+            UserAPIKey.is_active == True
+        ).first()
+        
+        if not user_api_key:
+            # Try to use default API key if available
+            if not DEFAULT_API_KEY:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="No API key available. Please add an API key in settings or ensure demo mode is configured."
+                )
+            api_key_to_use = DEFAULT_API_KEY
+        else:
+            api_key_to_use = decrypt_api_key(user_api_key.encrypted_api_key)
+            if api_key_to_use == "invalid-key":
+                raise HTTPException(status_code=500, detail="API key decryption failed. Please re-add your API key.")
+        
+        # Create temporary file to store uploaded PDF
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            # Copy uploaded file to temporary file
+            shutil.copyfileobj(file.file, temp_file)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Get RAG service for this user
+            rag_service = get_rag_service(str(current_user.id), api_key_to_use)
+            
+            # Process the PDF
+            result = await rag_service.process_pdf(temp_file_path)
+            
+            if result["success"]:
+                return {
+                    "message": "PDF uploaded and processed successfully",
+                    "chunks_created": result["chunks_created"],
+                    "total_characters": result["total_characters"],
+                    "filename": file.filename
+                }
+            else:
+                raise HTTPException(status_code=500, detail=result["error"])
+                
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+    
+    except Exception as e:
+        print(f"Error in upload_pdf endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# RAG Chat endpoint
+@app.post("/api/chat-rag")
+async def chat_rag(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> StreamingResponse:
+    """Chat with uploaded PDF using RAG system"""
+    try:
+        # Get user's API key
+        user_api_key = db.query(UserAPIKey).filter(
+            UserAPIKey.user_id == current_user.id,
+            UserAPIKey.is_active == True
+        ).first()
+        
+        if not user_api_key:
+            if not DEFAULT_API_KEY:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="No API key available. Please add an API key in settings or ensure demo mode is configured."
+                )
+            api_key_to_use = DEFAULT_API_KEY
+        else:
+            api_key_to_use = decrypt_api_key(user_api_key.encrypted_api_key)
+            if api_key_to_use == "invalid-key":
+                raise HTTPException(status_code=500, detail="API key decryption failed. Please re-add your API key.")
+        
+        # Get RAG service for this user
+        rag_service = get_rag_service(str(current_user.id), api_key_to_use)
+        
+        # Check if RAG system is initialized
+        status = rag_service.get_status()
+        if not status["vector_db_initialized"]:
+            raise HTTPException(
+                status_code=400, 
+                detail="No PDF uploaded. Please upload a PDF first before using RAG chat."
+            )
+        
+        # Create streaming response using RAG
+        async def generate() -> AsyncGenerator[str, None]:
+            async for chunk in rag_service.generate_rag_response_stream(request.user_message):
+                yield chunk
+        
+        return StreamingResponse(generate(), media_type="text/plain")
+    
+    except Exception as e:
+        print(f"Error in chat_rag endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# RAG Status endpoint
+@app.get("/api/rag-status")
+async def get_rag_status(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get the current status of the RAG system for the user"""
+    try:
+        # Get user's API key
+        user_api_key = db.query(UserAPIKey).filter(
+            UserAPIKey.user_id == current_user.id,
+            UserAPIKey.is_active == True
+        ).first()
+        
+        if not user_api_key:
+            if not DEFAULT_API_KEY:
+                return {"status": "no_api_key", "message": "No API key available"}
+            api_key_to_use = DEFAULT_API_KEY
+        else:
+            api_key_to_use = decrypt_api_key(user_api_key.encrypted_api_key)
+            if api_key_to_use == "invalid-key":
+                return {"status": "api_key_error", "message": "API key decryption failed"}
+        
+        # Get RAG service for this user
+        rag_service = get_rag_service(str(current_user.id), api_key_to_use)
+        status = rag_service.get_status()
+        
+        return {
+            "status": "ok",
+            "rag_initialized": status["vector_db_initialized"],
+            "documents_uploaded": status["documents_uploaded"],
+            "total_chunks": status["total_chunks"]
+        }
+    
+    except Exception as e:
+        print(f"Error in get_rag_status endpoint: {e}")
+        return {"status": "error", "message": str(e)}
+
+# Clear RAG documents endpoint
+@app.delete("/api/rag-clear")
+async def clear_rag_documents(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Clear all uploaded documents from the RAG system"""
+    try:
+        # Get user's API key
+        user_api_key = db.query(UserAPIKey).filter(
+            UserAPIKey.user_id == current_user.id,
+            UserAPIKey.is_active == True
+        ).first()
+        
+        if not user_api_key:
+            if not DEFAULT_API_KEY:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="No API key available. Please add an API key in settings or ensure demo mode is configured."
+                )
+            api_key_to_use = DEFAULT_API_KEY
+        else:
+            api_key_to_use = decrypt_api_key(user_api_key.encrypted_api_key)
+            if api_key_to_use == "invalid-key":
+                raise HTTPException(status_code=500, detail="API key decryption failed. Please re-add your API key.")
+        
+        # Get RAG service for this user and clear documents
+        rag_service = get_rag_service(str(current_user.id), api_key_to_use)
+        rag_service.clear_documents()
+        
+        return {"message": "RAG documents cleared successfully"}
+    
+    except Exception as e:
+        print(f"Error in clear_rag_documents endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Entry point for running the application directly
