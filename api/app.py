@@ -292,9 +292,9 @@ async def health_check() -> Dict[str, str]:
         return {
             "status": "ok",
             "timestamp": datetime.utcnow().isoformat(),
-            "openai_configured": bool(DEFAULT_API_KEY),
-            "secret_key_configured": bool(os.getenv("SECRET_KEY")),
-            "encryption_key_configured": bool(os.getenv("ENCRYPTION_KEY"))
+            "openai_configured": "Yes" if DEFAULT_API_KEY else "No",
+            "secret_key_configured": "Yes" if os.getenv("SECRET_KEY") else "No",
+            "encryption_key_configured": "Yes" if os.getenv("ENCRYPTION_KEY") else "No"
         }
     except Exception as e:
         return {
