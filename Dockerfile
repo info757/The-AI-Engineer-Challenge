@@ -3,11 +3,14 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
+COPY api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire current directory (api/)
-COPY . .
+# Copy the aimakerspace library
+COPY aimakerspace/ ./aimakerspace/
+
+# Copy the API directory
+COPY api/ .
 
 # Expose port
 EXPOSE 8000
