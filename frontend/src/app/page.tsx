@@ -110,11 +110,11 @@ export default function Home() {
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful, data:', data);
-        setAuthToken(data.token);
+        setAuthToken(data.access_token);
         setIsAuthenticated(true);
         setShowAuth(false);
-        await fetchUserData(data.token);
-        await fetchUserAPIKeys(data.token);
+        await fetchUserData(data.access_token);
+        await fetchUserAPIKeys(data.access_token);
       } else {
         const errorData = await response.json();
         console.error('Login failed:', errorData);
