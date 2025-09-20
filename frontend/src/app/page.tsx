@@ -67,7 +67,12 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   
   // RAG-related state
-  const [ragStatus, setRagStatus] = useState<any>(null);
+  interface RAGStatusType {
+    rag_initialized: boolean;
+    total_chunks: number;
+    documents_uploaded: number;
+  }
+  const [ragStatus, setRagStatus] = useState<RAGStatusType | null>(null);
   const [useRAGMode, setUseRAGMode] = useState(false);
   const [showPDFUpload, setShowPDFUpload] = useState(false);
   
@@ -363,7 +368,7 @@ export default function Home() {
   };
 
   // RAG-related functions
-  const handlePDFUploadSuccess = (result: any) => {
+  const handlePDFUploadSuccess = (result: unknown) => {
     console.log('PDF upload successful:', result);
     setShowPDFUpload(false);
     // Refresh RAG status will be handled by the RAGStatus component
@@ -374,7 +379,7 @@ export default function Home() {
     setError(error);
   };
 
-  const handleRAGStatusChange = (status: any) => {
+  const handleRAGStatusChange = (status: RAGStatusType) => {
     setRagStatus(status);
     // Auto-enable RAG mode if documents are uploaded
     if (status.rag_initialized && !useRAGMode) {
@@ -630,6 +635,7 @@ export default function Home() {
               </div>
             </div>
 
+            <div>
               <textarea
                 value={systemMessage}
                 onChange={(e) => setSystemMessage(e.target.value)}

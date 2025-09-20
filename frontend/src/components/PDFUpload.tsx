@@ -5,7 +5,7 @@ import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 
 interface PDFUploadProps {
-  onUploadSuccess: (result: any) => void;
+  onUploadSuccess: (result: unknown) => void;
   onUploadError: (error: string) => void;
   authToken: string | null;
   darkMode: boolean;

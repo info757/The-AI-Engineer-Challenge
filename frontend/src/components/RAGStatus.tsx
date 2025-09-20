@@ -4,18 +4,18 @@ import { useState, useEffect } from 'react';
 import { FileText, Database, Trash2, RefreshCw } from 'lucide-react';
 import { API_ENDPOINTS } from '@/config/api';
 
-interface RAGStatusProps {
-  authToken: string | null;
-  darkMode: boolean;
-  onStatusChange: (status: any) => void;
-}
-
 interface RAGStatusData {
   status: string;
   rag_initialized: boolean;
   documents_uploaded: number;
   total_chunks: number;
   message?: string;
+}
+
+interface RAGStatusProps {
+  authToken: string | null;
+  darkMode: boolean;
+  onStatusChange: (status: RAGStatusData) => void;
 }
 
 export default function RAGStatus({ authToken, darkMode, onStatusChange }: RAGStatusProps) {
