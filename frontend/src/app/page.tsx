@@ -205,7 +205,7 @@ export default function Home() {
       console.log('Key Name:', keyName);
       console.log('Auth Token exists:', !!authToken);
       
-      const requestBody = { apiKey: apiKey, name: keyName };
+      const requestBody = { api_key: apiKey, key_name: keyName };
       console.log('Request body:', requestBody);
       
       const response = await fetch(API_ENDPOINTS.apiKeys, {
