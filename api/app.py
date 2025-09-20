@@ -179,7 +179,8 @@ def create_api_key(api_key_data: APIKeyCreate, current_user: User = Depends(get_
         return db_api_key
     except Exception as e:
         print(f"Error in create_api_key: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create API key")
+        print(f"ENCRYPTION_KEY configured: {'Yes' if os.getenv('ENCRYPTION_KEY') else 'No'}")
+        raise HTTPException(status_code=500, detail=f"Failed to create API key: {str(e)}")
 
 @app.get("/api/api-keys", response_model=List[APIKeyResponse])
 def get_user_api_keys(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
