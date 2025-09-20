@@ -16,9 +16,10 @@ interface RAGStatusProps {
   authToken: string | null;
   darkMode: boolean;
   onStatusChange: (status: RAGStatusData) => void;
+  refreshTrigger?: number; // Add refresh trigger
 }
 
-export default function RAGStatus({ authToken, darkMode, onStatusChange }: RAGStatusProps) {
+export default function RAGStatus({ authToken, darkMode, onStatusChange, refreshTrigger }: RAGStatusProps) {
   const [status, setStatus] = useState<RAGStatusData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +86,7 @@ export default function RAGStatus({ authToken, darkMode, onStatusChange }: RAGSt
     if (authToken) {
       fetchStatus();
     }
-  }, [authToken]);
+  }, [authToken, refreshTrigger]);
 
   if (!authToken) {
     return null;

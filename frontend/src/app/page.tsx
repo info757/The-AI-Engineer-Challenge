@@ -75,6 +75,7 @@ export default function Home() {
   const [ragStatus, setRagStatus] = useState<RAGStatusType | null>(null);
   const [useRAGMode, setUseRAGMode] = useState(false);
   const [showPDFUpload, setShowPDFUpload] = useState(false);
+  const [ragRefreshTrigger, setRagRefreshTrigger] = useState(0);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -371,7 +372,8 @@ export default function Home() {
   const handlePDFUploadSuccess = (result: unknown) => {
     console.log('PDF upload successful:', result);
     setShowPDFUpload(false);
-    // Refresh RAG status will be handled by the RAGStatus component
+    // Trigger RAG status refresh
+    setRagRefreshTrigger(prev => prev + 1);
   };
 
   const handlePDFUploadError = (error: string) => {
@@ -683,6 +685,7 @@ export default function Home() {
                     authToken={authToken}
                     darkMode={darkMode}
                     onStatusChange={handleRAGStatusChange}
+                    refreshTrigger={ragRefreshTrigger}
                   />
 
                   {/* PDF Upload Button */}
