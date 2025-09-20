@@ -279,10 +279,10 @@ export default function Home() {
       }
 
       const requestBody = {
-        message: input.trim(),
+        developer_message: systemMessage,
+        user_message: input.trim(),
         model: selectedModel,
-        system_message: systemMessage,
-        demo_mode: !isAuthenticated || demoMode,
+        use_demo_mode: !isAuthenticated || demoMode,
         api_key_id: (!isAuthenticated || demoMode) ? undefined : selectedAPIKeyId
       };
 
