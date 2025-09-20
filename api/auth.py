@@ -26,11 +26,12 @@ def get_encryption_key():
         print(f"Generated new encryption key: {new_key.decode()}")
         return new_key
     
-    # If the key is a string, try to use it
+    # If the key is a string, try to use it directly
     if isinstance(encryption_key, str):
         try:
-            # Try to decode it as base64
-            return base64.b64decode(encryption_key.encode())
+            # Test if it's valid base64 by trying to create a Fernet instance
+            Fernet(encryption_key)
+            return encryption_key
         except:
             # If not valid base64, generate a new key
             print("WARNING: Invalid ENCRYPTION_KEY format. Generating new key.")
