@@ -731,27 +731,11 @@ export default function Home() {
                 const email = formData.get('email') as string;
                 login(email, password);
               } else {
-                const username = formData.get('username') as string;
                 const email = formData.get('email') as string;
-                register(username, email, password);
+                register('', email, password); // Username will be auto-generated
               }
             }}>
               <div className="space-y-4">
-                {!isLogin && (
-                  <div>
-                    <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Username
-                    </label>
-                    <input
-                      name="username"
-                      type="text"
-                      required
-                      className={`w-full p-2 border rounded-lg ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 placeholder-gray-500'
-                      }`}
-                    />
-                  </div>
-                )}
                 
                 <div>
                   <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>

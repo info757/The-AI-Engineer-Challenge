@@ -6,13 +6,13 @@ from datetime import datetime
 # User authentication schemas
 class UserCreate(BaseModel):
     """Schema for user registration"""
-    username: str
     email: EmailStr
     password: str
+    username: Optional[str] = None
 
 class UserLogin(BaseModel):
     """Schema for user login"""
-    username: str
+    email: EmailStr
     password: str
 
 class UserResponse(BaseModel):

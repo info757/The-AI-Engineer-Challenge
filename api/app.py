@@ -112,8 +112,11 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     try:
+        # Auto-generate username from email if not provided
+        username = user.username or user.email.split('@')[0]
+        
         # Check if user already exists
-        db_user = db.query(User).filter(User.username == user.username).first()
+        db_user = db.query(User).filter(User.username == username).first()
         if db_user:
             raise HTTPException(status_code=400, detail="Username already registered")
         
@@ -124,7 +127,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         # Create new user
         hashed_password = get_password_hash(user.password)
         db_user = User(
-            username=user.username,
+            username=username,
             email=user.email,
             hashed_password=hashed_password
         )
@@ -140,11 +143,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """Login user and return JWT token"""
     try:
-        user = db.query(User).filter(User.username == user_credentials.username).first()
+        user = db.query(User).filter(User.email == user_credentials.email).first()
         if not user or not verify_password(user_credentials.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password",
+                detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
