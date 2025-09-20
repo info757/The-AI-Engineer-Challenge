@@ -6,11 +6,17 @@ WORKDIR /app
 COPY api/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the aimakerspace library
+# Copy the aimakerspace library directly
 COPY aimakerspace/ ./aimakerspace/
 
 # Copy the API directory
 COPY api/ .
+
+# Add the current directory to Python path
+ENV PYTHONPATH=/app:$PYTHONPATH
+
+# Test imports
+RUN python api/test_imports.py
 
 # Expose port
 EXPOSE 8000
