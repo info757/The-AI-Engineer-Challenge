@@ -99,7 +99,7 @@ export default function Home() {
   const login = async (email: string, password: string) => {
     try {
       console.log('Starting login for:', email);
-      const response = await fetch('/api/login', {
+      const response = await fetch(API_ENDPOINTS.login, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -129,7 +129,7 @@ export default function Home() {
   const register = async (username: string, email: string, password: string) => {
     try {
       console.log('Starting registration for:', email);
-      const response = await fetch('/api/register', {
+      const response = await fetch(API_ENDPOINTS.register, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
@@ -168,7 +168,7 @@ export default function Home() {
 
   const fetchUserData = async (token: string) => {
     try {
-      const response = await fetch('/api/me', {
+      const response = await fetch(API_ENDPOINTS.me, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -182,7 +182,7 @@ export default function Home() {
 
   const fetchUserAPIKeys = async (token: string) => {
     try {
-      const response = await fetch('/api/api-keys', {
+      const response = await fetch(API_ENDPOINTS.apiKeys, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (response.ok) {
@@ -208,7 +208,7 @@ export default function Home() {
       const requestBody = { apiKey: apiKey, name: keyName };
       console.log('Request body:', requestBody);
       
-      const response = await fetch('/api/api-keys', {
+      const response = await fetch(API_ENDPOINTS.apiKeys, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
