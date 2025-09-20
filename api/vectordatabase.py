@@ -3,7 +3,7 @@ from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from aimakerspace.openai_utils.embedding import EmbeddingModel
+from openai_utils.embedding import EmbeddingModel
 
 
 def cosine_similarity(vector_a: np.ndarray, vector_b: np.ndarray) -> float:
