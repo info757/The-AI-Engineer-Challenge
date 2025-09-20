@@ -9,11 +9,11 @@ import asyncio
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 
-# Import aimakerspace components
-from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter
-from aimakerspace.vectordatabase import VectorDatabase
-from aimakerspace.openai_utils.embedding import EmbeddingModel
-from aimakerspace.openai_utils.chatmodel import ChatOpenAI
+# Import local components (copied from aimakerspace)
+from text_utils import PDFLoader, CharacterTextSplitter
+from vectordatabase import VectorDatabase
+from openai_utils.embedding import EmbeddingModel
+from openai_utils.chatmodel import ChatOpenAI
 
 class RAGService:
     """Service for handling PDF-based RAG operations."""
