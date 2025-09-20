@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User, LogOut, FileText, Database } from 'lucide-react';
 import PDFUpload from '../components/PDFUpload';
 import RAGStatus from '../components/RAGStatus';
+import { API_ENDPOINTS } from '@/config/api';
 
 /**
  * Main AI Chat Application Component
@@ -284,7 +285,7 @@ export default function Home() {
       console.log('Request body:', requestBody);
 
       // Choose endpoint based on RAG mode
-      const endpoint = useRAGMode ? '/api/chat-rag' : '/api/chat';
+      const endpoint = useRAGMode ? API_ENDPOINTS.chatRAG : API_ENDPOINTS.chat;
       
       const response = await fetch(endpoint, {
         method: 'POST',

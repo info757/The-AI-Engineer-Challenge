@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface PDFUploadProps {
   onUploadSuccess: (result: any) => void;
@@ -64,7 +65,7 @@ export default function PDFUpload({ onUploadSuccess, onUploadError, authToken, d
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/upload-pdf', {
+      const response = await fetch(API_ENDPOINTS.uploadPDF, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`

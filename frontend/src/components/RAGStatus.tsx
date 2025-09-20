@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FileText, Database, Trash2, RefreshCw } from 'lucide-react';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface RAGStatusProps {
   authToken: string | null;
@@ -29,7 +30,7 @@ export default function RAGStatus({ authToken, darkMode, onStatusChange }: RAGSt
     setError(null);
     
     try {
-      const response = await fetch('/api/rag-status', {
+      const response = await fetch(API_ENDPOINTS.ragStatus, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -58,7 +59,7 @@ export default function RAGStatus({ authToken, darkMode, onStatusChange }: RAGSt
     setError(null);
     
     try {
-      const response = await fetch('/api/rag-clear', {
+      const response = await fetch(API_ENDPOINTS.ragClear, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}`
