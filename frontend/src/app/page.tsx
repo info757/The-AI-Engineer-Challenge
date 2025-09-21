@@ -862,6 +862,16 @@ export default function Home() {
         />
       </div>
 
+      {/* HVAC Navigation */}
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <HVACNavigation 
+          activeTab={activeHVACTab}
+          onTabChange={setActiveHVACTab}
+          darkMode={darkMode}
+          onQuickAction={handleHVACQuickAction}
+        />
+      </div>
+
       {/* Chat Container */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className={`rounded-lg border transition-colors duration-300 ${
