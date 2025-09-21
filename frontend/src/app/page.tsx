@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Copy, ThumbsUp, ThumbsDown, Settings, User, LogOut, FileText, Database } from 'lucide-react';
 import PDFUpload from '../components/PDFUpload';
 import RAGStatus from '../components/RAGStatus';
+import HVACNavigation from '../components/HVACNavigation';
 import { API_ENDPOINTS } from '@/config/api';
 
 /**
@@ -76,6 +77,9 @@ export default function Home() {
   const [useRAGMode, setUseRAGMode] = useState(false);
   const [showPDFUpload, setShowPDFUpload] = useState(false);
   const [ragRefreshTrigger, setRagRefreshTrigger] = useState(0);
+  
+  // HVAC Navigation state
+  const [activeHVACTab, setActiveHVACTab] = useState('diagnostics');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -389,6 +393,39 @@ export default function Home() {
     }
   };
 
+  const handleHVACQuickAction = (action: string) => {
+    // Set the input to a relevant question based on the action
+    const actionPrompts: Record<string, string> = {
+      'System Won\'t Start': 'My HVAC system won\'t start. What should I check first?',
+      'No Heat/Cool': 'My system is running but not providing heat/cooling. What could be wrong?',
+      'Strange Noises': 'My HVAC system is making unusual noises. How do I diagnose this?',
+      'High Energy Bills': 'My energy bills have increased significantly. What should I check?',
+      'New System Install': 'I need to install a new HVAC system. What are the key considerations?',
+      'Ductwork Setup': 'How do I properly design and install ductwork for a new system?',
+      'Thermostat Wiring': 'Can you help me with thermostat wiring diagrams and installation?',
+      'Refrigerant Lines': 'What are the best practices for installing refrigerant lines?',
+      'Filter Replacement': 'When and how should I replace HVAC filters?',
+      'Coil Cleaning': 'How do I properly clean HVAC coils?',
+      'Lubrication': 'What parts of my HVAC system need regular lubrication?',
+      'Safety Check': 'What safety checks should I perform before working on HVAC equipment?',
+      'BTU Ratings': 'How do I calculate the correct BTU rating for a space?',
+      'Electrical Specs': 'What electrical specifications do I need for this HVAC unit?',
+      'Refrigerant Type': 'What type of refrigerant does this system use?',
+      'Dimensions': 'What are the physical dimensions and clearance requirements?',
+      'Error Codes': 'My system is showing error codes. How do I interpret them?',
+      'Pressure Issues': 'I\'m having pressure problems with my HVAC system. What should I check?',
+      'Wiring Problems': 'I suspect there\'s a wiring issue. How do I troubleshoot this?',
+      'Performance Issues': 'My system isn\'t performing as expected. What diagnostics should I run?'
+    };
+    
+    const prompt = actionPrompts[action] || action;
+    setInput(prompt);
+    // Focus the input field
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 100);
+  };
+
   const handleReaction = (messageId: string, reaction: 'thumbsUp' | 'thumbsDown') => {
     setMessages(prev => 
       prev.map(msg => 
@@ -407,11 +444,11 @@ export default function Home() {
   };
 
   const systemMessageTemplates = [
-    { label: 'Helpful Assistant', message: 'You are a helpful AI assistant.' },
-    { label: 'Coding Expert', message: 'You are a coding expert. Provide clear, concise code examples and best practices.' },
-    { label: 'Creative Writer', message: 'You are a creative writer. Be imaginative, engaging, and help with storytelling.' },
-    { label: 'Therapist', message: 'You are a supportive conversational partner. Provide empathetic listening and gentle guidance, but always recommend professional help for serious issues.' },
-    { label: 'Medical Advice (Not a Doctor)', message: 'I can provide general health information and wellness tips, but I am not a doctor. Always consult with healthcare professionals for medical advice, diagnosis, or treatment.' }
+    { label: 'HVAC Diagnostician', message: 'You are an expert HVAC technician specializing in diagnostics. Help identify problems, troubleshoot issues, and provide step-by-step diagnostic procedures. Always prioritize safety and recommend professional help for complex issues.' },
+    { label: 'Installation Expert', message: 'You are a certified HVAC installation specialist. Provide detailed installation procedures, best practices, and safety guidelines. Focus on proper sizing, placement, and system integration.' },
+    { label: 'Maintenance Specialist', message: 'You are an HVAC maintenance expert. Help with preventive maintenance schedules, service procedures, and equipment longevity. Provide clear maintenance checklists and troubleshooting guides.' },
+    { label: 'Technical Reference', message: 'You are a technical reference specialist for HVAC systems. Provide specifications, wiring diagrams, part numbers, and technical data. Focus on accuracy and manufacturer-specific information.' },
+    { label: 'Safety Advisor', message: 'You are an HVAC safety specialist. Emphasize safety procedures, proper use of tools, handling of refrigerants, electrical safety, and compliance with codes and regulations.' }
   ];
 
   return (
@@ -424,7 +461,7 @@ export default function Home() {
       }`}>
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            AI Chat Assistant
+            HVAC Tech Assistant
           </h1>
           
           <div className="flex items-center space-x-4">
@@ -815,6 +852,16 @@ export default function Home() {
         </div>
       )}
 
+      {/* HVAC Navigation */}
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <HVACNavigation 
+          activeTab={activeHVACTab}
+          onTabChange={setActiveHVACTab}
+          darkMode={darkMode}
+          onQuickAction={handleHVACQuickAction}
+        />
+      </div>
+
       {/* Chat Container */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <div className={`rounded-lg border transition-colors duration-300 ${
@@ -824,11 +871,11 @@ export default function Home() {
           <div className="h-96 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                <div className="text-4xl mb-4">🤖</div>
-                <p className="text-lg font-medium mb-2">Welcome to AI Chat Assistant!</p>
-                <p>Start a conversation by typing a message below.</p>
+                <div className="text-4xl mb-4">🔧</div>
+                <p className="text-lg font-medium mb-2">Welcome to HVAC Tech Assistant!</p>
+                <p>Upload your manuals and start diagnosing, installing, or maintaining HVAC systems.</p>
                 {!isAuthenticated && (
-                  <p className="text-sm mt-2">Please log in to start chatting.</p>
+                  <p className="text-sm mt-2">Please log in to access all features.</p>
                 )}
               </div>
             ) : (
