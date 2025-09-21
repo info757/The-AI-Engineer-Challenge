@@ -112,32 +112,50 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user"""
     try:
+        print(f"Registration attempt for email: {user.email}")
+        
         # Auto-generate username from email if not provided
         username = user.username or user.email.split('@')[0]
+        print(f"Generated username: {username}")
         
         # Check if user already exists
         db_user = db.query(User).filter(User.username == username).first()
         if db_user:
+            print(f"Username already exists: {username}")
             raise HTTPException(status_code=400, detail="Username already registered")
         
         db_user = db.query(User).filter(User.email == user.email).first()
         if db_user:
+            print(f"Email already exists: {user.email}")
             raise HTTPException(status_code=400, detail="Email already registered")
         
         # Create new user
+        print("Hashing password...")
         hashed_password = get_password_hash(user.password)
+        print("Password hashed successfully")
+        
+        print("Creating user object...")
         db_user = User(
             username=username,
             email=user.email,
             hashed_password=hashed_password
         )
+        
+        print("Adding user to database...")
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
+        print(f"User created successfully with ID: {db_user.id}")
+        
         return db_user
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
-        print(f"Error in register: {e}")
-        raise HTTPException(status_code=500, detail="Registration failed")
+        print(f"Detailed error in register: {type(e).__name__}: {e}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @app.post("/api/login", response_model=Token)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
